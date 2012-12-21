@@ -1,3 +1,7 @@
 #include "src/numbers.hpp"
 #include "src/vectors.hpp"
 #include "src/strings.hpp"
+#include "src/node.hpp"
+#include "src/edge.hpp"
+#include "src/graph.hpp"
+#include "src/chain.hpp"
