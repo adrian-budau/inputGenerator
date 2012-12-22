@@ -4,13 +4,20 @@
 #include <string>
 #include <vector>
 
+#include "exception.hpp"
 #include "numbers.hpp"
 #include "vectors.hpp"
 
 namespace inputGenerator {
-std::string randomString(const int &size, const std::string &dictionary, const int &maxSame = 0) {
-    if (maxSame > 0 && int64_t(maxSame) * int64_t(dictionary.size()) < size)
+std::string randomString(const int &size, const std::string &dictionary, const int &maxSame) {
+    if (size == 0)
         return "";
+
+    if (int(dictionary.size()) == 0)
+        throw Exception("randomString expects the `dictionary` size to be bigger than 0 when asked to generate a non-null string");
+
+    if (int64_t(maxSame) * int64_t(dictionary.size()) < size)
+        throw Exception("randomString expects the `size` to be lower than the product of the `dictionary` size and the maximum number of identical characters");
 
     // the count
     std::vector<int> count(dictionary.size(), 0);
@@ -29,6 +36,11 @@ std::string randomString(const int &size, const std::string &dictionary, const i
     }
 
     return result;
+}
+
+std::string randomString(const int &size, const std::string &dictionary) {
+    // no exceptions thrown here because the function with the same name will throw them
+    return randomString(size, dictionary, dictionary.size());
 }
 
 const std::string lowerLetters = "abcdefghijklmnopqrstuvwxyz";

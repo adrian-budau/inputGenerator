@@ -21,10 +21,10 @@ int main() {
     vector<int> array = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
 
     cout << "The array: " << array << std::endl;
+    cout << "Random element of the array: " << element(array) << std::endl;
     cout << "Random shuffle of the array: " << shuffle(array) << std::endl;
     cout << "Random subsequence of the array: " << subsequence(array) << std::endl;
     cout << "Random substring of the array: " << substring(array) << std::endl;
-
 
     cout << std::endl;
 

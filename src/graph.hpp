@@ -6,6 +6,7 @@
 #include <unordered_set>
 #include <algorithm>
 
+#include "exception.hpp"
 #include "node.hpp"
 #include "edge.hpp"
 #include "vectors.hpp"
@@ -137,19 +138,18 @@ void Graph<NodeData, EdgeData>::Index(std::initializer_list< std::pair<NodeType&
     // we also keep track of the values we have so we can assign demn easily
     std::unordered_set<int> usedValues;
     for (auto &node: fixed) {
-        // stupid, very very stupid
         if (node.second < from || node.second >= from + int(nodes.size()))
-            continue;
+            throw Exception("On Graph Reindexing nodes must be reindexed using only values between `from` and `from` + the_number_of_nodes - 1");
 
         // why would you give a node twice?
         // anyway we ignore following attempts, it's your duty to not have multiple such actions
         if (fixedNodes.find(node.first.getKey()) != fixedNodes.end())
-            continue;
+            throw Exception("On Graph Reindexing no node is allowed to appear twice");
 
         // and why would you reuse values?
         // again we ignore such attempts
         if (usedValues.find(node.second) != usedValues.end())
-            continue;
+            throw Exception("On Graph Reindexing no two nodes are allowed to have the same index");
 
         node.first.index = node.second;
         fixedNodes.insert(node.first.getKey());

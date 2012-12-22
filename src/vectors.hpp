@@ -4,6 +4,7 @@
 #include <set>
 #include <random>
 
+#include "exception.hpp"
 #include "generator.hpp"
 #include "numbers.hpp"
 
@@ -24,6 +25,9 @@ Container shuffle(const Container& data) {
 
 template<class Container>
 Container subsequence(const Container& data, const int &newSize) {
+    if (newSize < 0 || newSize > int(data.size()))
+        throw Exception("subsequence expects the `newSize` to be at least 0 and at most the container's size");
+
     if (data.size() == 0 || newSize == 0)
         return Container();
 
@@ -82,6 +86,9 @@ Container subsequence(const Container& data, const int &newSize) {
 
 template<class Container>
 Container subsequence(const Container& data, const bool& canNull = true) {
+    if (int(data.size()) == 0 && canNull == false)
+        throw Exception("subsequence on an empty container must have `canNull` true");
+
     Container result;
     result.reserve(data.size());
     do {
@@ -96,6 +103,10 @@ Container subsequence(const Container& data, const bool& canNull = true) {
 
 template<class Container>
 Container substring(const Container& data, const int &newSize) {
+    if (newSize < 0 || newSize > int(data.size()))
+        throw Exception("substring expects the `newSize` to be at least 0 and at most the container's size");
+
+
     if (data.size() == 0 || newSize == 0)
         return Container();
 
@@ -118,20 +129,39 @@ Container substring(const Container& data, const int &newSize) {
 }
 
 template<class Container>
-Container substring(const Container& data, const bool& canNull = true) {
+Container substring(const Container& data, const int &least, const int &most) {
+    if (least < 0 || least > int(data.size()))
+        throw Exception("substring expects `least` to be at least 0 and at most the container's size");
+
+    if (most < 0 || most > int(data.size()))
+        throw Exception("substring expects `most` to be at least 0 and at most the container's size");
+
+    if (least > most)
+        throw Exception("substring expects `least` to be lower than or equal than `most`");
+
+
     // Very very hard, especially because we have to give different probabilities to each length
     std::vector<double> weight(data.size() + 1, 0.0);
-    for (int i = 1; i <= int(data.size()); ++i)
+    for (int i = least; i <= most; ++i)
         weight[i] = data.size() - i + 1;
-
-    if (canNull)
-        weight[0] = 1.0;
 
     std::discrete_distribution<int>  distribution(weight.begin(), weight.end());
     int length = distribution(Generator::getGenerator());
     return substring(data, length);
 }
 
+template<class Container>
+Container substring(const Container &data) {
+    // it's obsolete to add exceptions here, they would just repeat with the ones above
+    return substring(data, 0, data.size());
 }
 
+template<class Container>
+auto element(const Container &data) -> decltype(data[0]) {
+    if (data.size() == 0)
+        throw Exception("element is expecting a non-empty container");
+    return data[randomInt(0, data.size() - 1)];
+}
+
+}
 #endif // INPUT_GENERATOR_VECTORS_HPP_
