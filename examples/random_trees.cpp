@@ -39,22 +39,6 @@ ostream& operator<<(ostream& cout, const Graph<>& V) {
 }
 
 int main() {
-    // Setting the seed before-hand
-    // This should always generate the same thing
-    Seed::create(1023456789);
-    cout << "Random Chain of length 5 (undirected graph): " << endl;
-    cout << chain(5) << endl;
-
-    cout << "Random Path of length 5 (directed graph): " << endl;
-    cout << path(5) << endl;
-
-    // now we seed again, this time completly random
-    // we have to recreate the generator also
-    Seed::create();
-    Generator::create();
-
-    auto graph = path(5, false);
-    graph.Index({{graph[0], 5}, {graph[4], 6}}, 5);
-    cout << "Random Path of length 5 indexed from 5 to 9 starting from node with index 5 and ending at node with index 6: " << endl;
-    cout << graph << "\n";
+    cout << "Random tree of size 5: " << tree(5) << "\n";
 }
+

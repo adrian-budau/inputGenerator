@@ -6,3 +6,4 @@
 #include "src/edge.hpp"
 #include "src/graph.hpp"
 #include "src/chain.hpp"
+#include "src/tree.hpp"

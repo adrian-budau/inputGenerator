@@ -3,6 +3,7 @@
 
 #include <set>
 #include <random>
+#include <utility>
 
 #include "exception.hpp"
 #include "generator.hpp"
@@ -157,7 +158,7 @@ Container substring(const Container &data) {
 }
 
 template<class Container>
-auto element(const Container &data) -> decltype(data[0]) {
+auto element(Container &data) -> typename std::iterator_traits<decltype(data.begin())>::reference {
     if (data.size() == 0)
         throw Exception("element is expecting a non-empty container");
     return data[randomInt(0, data.size() - 1)];

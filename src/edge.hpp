@@ -5,35 +5,35 @@ namespace inputGenerator {
 
 #if !defined(INPUT_GENERATOR_NODE_HPP_)
 template<class NodeData, class EdgeData>
-class Node;
+class _Node;
 #endif
 
 template<class NodeData = int, class EdgeData = int>
-class Edge {
+class _Edge {
   public:
-    typedef Node<NodeData, EdgeData> NodeType;
-    typedef Edge<NodeData, EdgeData> EdgeType;
+    typedef _Node<NodeData, EdgeData> NodeType;
+    typedef _Edge<NodeData, EdgeData> EdgeType;
 
-    Edge(const Edge&);
+    _Edge(const _Edge&);
 
-    Edge(const NodeType&, const NodeType&);
+    _Edge(const NodeType&, const NodeType&);
 
     EdgeData data;
 
   private:
-    friend class Node<NodeData, EdgeData>;
+    friend class _Node<NodeData, EdgeData>;
 
     NodeType *from, *to;
 };
 
 template<class NodeData, class EdgeData>
-Edge<NodeData, EdgeData>::Edge(const Edge<NodeData, EdgeData>& that) {
+_Edge<NodeData, EdgeData>::_Edge(const _Edge<NodeData, EdgeData>& that) {
   from = const_cast<NodeType*>(that.from);
   to = const_cast<NodeType*>(that.to);
 }
 
 template<class NodeData, class EdgeData>
-Edge<NodeData, EdgeData>::Edge(const NodeType& _from, const NodeType& _to) {
+_Edge<NodeData, EdgeData>::_Edge(const NodeType& _from, const NodeType& _to) {
   from = const_cast<NodeType*>(&_from);
   to = const_cast<NodeType*>(&_to);
 }

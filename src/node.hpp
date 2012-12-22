@@ -8,16 +8,16 @@ namespace inputGenerator {
 
 #if !defined(INPUT_GENERATOR_EDGE_HPP_)
 template<class NodeData, class EdgeData>
-class Edge;
+class _Edge;
 #endif
 
 template<class NodeData = int, class EdgeData = int>
-class Node {
+class _Node {
   public:
-    typedef Node<NodeData, EdgeData> NodeType;
-    typedef Edge<NodeData, EdgeData> EdgeType;
+    typedef _Node<NodeData, EdgeData> NodeType;
+    typedef _Edge<NodeData, EdgeData> EdgeType;
 
-    Node(const int &_index = 0);
+    _Node(const int &_index = 0);
 
     const unsigned& getKey() const;
 
@@ -33,11 +33,11 @@ class Node {
     int index;
 
   private:
-    friend class Edge<NodeData, EdgeData>;
+    friend class _Edge<NodeData, EdgeData>;
 
     std::unordered_multimap<unsigned, EdgeType> neighbours;
 
-    // auto-increment value to asign each Node object a key
+    // auto-increment value to asign each _Node object a key
     static unsigned keyCount;
 
     // the key itself
@@ -45,21 +45,21 @@ class Node {
 };
 
 template<class NodeData, class EdgeData>
-unsigned Node<NodeData, EdgeData>::keyCount = 0;
+unsigned _Node<NodeData, EdgeData>::keyCount = 0;
 
 template<class NodeData, class EdgeData>
-Node<NodeData, EdgeData>::Node(const int &_index) {
+_Node<NodeData, EdgeData>::_Node(const int &_index) {
     index = _index;
     key = keyCount++;
 }
 
 template<class NodeData, class EdgeData>
-const unsigned& Node<NodeData, EdgeData>::getKey() const {
+const unsigned& _Node<NodeData, EdgeData>::getKey() const {
     return key;
 }
 
 template<class NodeData, class EdgeData>
-void Node<NodeData, EdgeData>::addEdge(const EdgeType& edge) {
+void _Node<NodeData, EdgeData>::addEdge(const EdgeType& edge) {
     // just so you dont add stupid edges
     if (edge.from != this) {
         EdgeType newEdge = edge;
@@ -71,15 +71,67 @@ void Node<NodeData, EdgeData>::addEdge(const EdgeType& edge) {
 }
 
 template<class NodeData, class EdgeData>
-void Node<NodeData, EdgeData>::addEdge(const NodeType& otherNode) {
+void _Node<NodeData, EdgeData>::addEdge(const NodeType& otherNode) {
     EdgeType edge(*this, otherNode);
     addEdge(edge);
 }
 
 template<class NodeData, class EdgeData>
-int Node<NodeData, EdgeData>::edgesTo(const NodeType& otherNode) const {
+int _Node<NodeData, EdgeData>::edgesTo(const NodeType& otherNode) const {
     return neighbours.count(otherNode.getKey());
 }
+
+// the problem with nodes is the fact they can't be copied
+// this is a wrapper to allow such copying without having to deal with pointers
+template<class NodeData, class EdgeData>
+class NodeWrapper {
+  public:
+    typedef _Node<NodeData, EdgeData> NodeType;
+
+    NodeWrapper(const int &index = 0) {
+        internalNode = new NodeType(index);
+    }
+
+    NodeWrapper(const NodeWrapper<NodeData, EdgeData> &otherNodeWrapper) {
+        internalNode = otherNodeWrapper.internalNode;
+    }
+
+    NodeWrapper(const NodeType* otherNode) {
+        internalNode = otherNode;
+    }
+
+    NodeWrapper(const NodeType& otherNode) {
+        internalNode = &otherNode;
+    }
+
+    NodeWrapper& operator=(const NodeWrapper& otherNodeWrapper) {
+        internalNode = otherNodeWrapper.internalNode;
+        return *this;
+    }
+
+    const unsigned& getKey() const {
+        return internalNode -> getKey();
+    }
+
+    void addEdge(const NodeWrapper& otherNodeWrapper) {
+        internalNode -> addEdge(*otherNodeWrapper.internalNode);
+    }
+
+    int& index() {
+        return internalNode -> index;
+    }
+
+    int& index() const {
+        return internalNode -> index;
+    }
+
+    int edgesTo(const NodeWrapper& otherNodeWrapper) const {
+        return (internalNode -> edgesTo(*otherNodeWrapper.internalNode));
+    }
+
+  private:
+    NodeType *internalNode;
+};
 
 }
 
