@@ -77,6 +77,8 @@ long double randomDouble64(const long double &from, const long double &to) {
     return randomRealType<long double>(from, to);
 }
 
+
+
 }
 
 #endif // INPUT_GENERATOR_NUMBERS_HPP_

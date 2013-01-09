@@ -15,7 +15,7 @@ Graph<NodeData, EdgeData> tree(const int &size = 1) {
     Graph<NodeData, EdgeData> graph;
     for (int i = 1; i < size; ++i) {
         typename Graph<NodeData, EdgeData>::Node node;
-        typename Graph<NodeData, EdgeData>::Node &parent = element(graph);
+        typename Graph<NodeData, EdgeData>::Node &parent = randomElement(graph);
 
         parent.addEdge(node);
         node.addEdge(parent);
