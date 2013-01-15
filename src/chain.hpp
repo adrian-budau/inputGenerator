@@ -15,8 +15,7 @@ Graph<NodeData, EdgeData> chain(const int &size = 1, const bool &random = true )
 
     Graph<NodeData, EdgeData> graph(size);
     for (int i = 1; i < size; ++i) {
-        graph[i - 1].addEdge(graph[i]);
-        graph[i].addEdge(graph[i - 1]);
+        addEdge(graph[i - 1], graph[i]);
     }
 
     if (random)

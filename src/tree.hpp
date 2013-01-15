@@ -7,6 +7,7 @@
 
 namespace inputGenerator {
 
+// TODO: use pruffer sequences
 template<class NodeData = int, class EdgeData = int>
 Graph<NodeData, EdgeData> tree(const int &size = 1) {
     if (size <= 0)
@@ -15,15 +16,13 @@ Graph<NodeData, EdgeData> tree(const int &size = 1) {
     Graph<NodeData, EdgeData> graph;
     for (int i = 1; i < size; ++i) {
         typename Graph<NodeData, EdgeData>::Node node;
-        typename Graph<NodeData, EdgeData>::Node &parent = randomElement(graph);
+        typename Graph<NodeData, EdgeData>::Node parent = randomElement(graph);
 
-        parent.addEdge(node);
-        node.addEdge(parent);
-
+        addEdge(node, parent);
         graph.addNodes({node});
     }
 
-    graph.Index();
+    graph = shuffle(graph);
 
     return graph;
 }

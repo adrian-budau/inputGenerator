@@ -7,3 +7,4 @@
 #include "src/graph.hpp"
 #include "src/chain.hpp"
 #include "src/tree.hpp"
+#include "src/bipartite.hpp"

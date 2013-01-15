@@ -8,27 +8,27 @@ using namespace inputGenerator;
 ostream& operator<<(ostream& cout, const Graph<>& V) {
     cout << "Nodes: ";
     for (auto &node: V)
-        cout << node.index() << " ";
+        cout << node.index() << "(" << node.getKey() << ") ";
     cout << endl;
     cout << "Edges: " << endl;
 
     cout << "  ";
-    for (int i = 0; i < V.size(); ++i) {
+    for (auto &node: V) {
         cout.width(3);
         cout.fill(' ');
 
-        cout << V[i].index();
+        cout << node.index();
     }
 
     cout << endl;
 
-    for (int i = 0; i < V.size(); ++i) {
+    for (auto &node: V) {
         cout.width(3);
         cout.fill(' ');
-        cout << V[i].index();
+        cout << node.index();
 
-        for (int j = 0; j < V.size(); ++j)
-            if (V[i].edgesTo(V[j]))
+        for (auto &secondNode: V)
+            if (node.hasEdge(secondNode))
                 cout << " * ";
             else
                 cout << "   ";

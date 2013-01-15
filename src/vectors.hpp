@@ -43,10 +43,14 @@ std::vector<IntType> randomSample(const int& numbers, const IntType& from = std:
     for (int taken = 1; taken <= numbers; ++taken) {
         // long live "Programming Pearls"
         IntType toTake = randomIntType<IntType>(from, to - numbers + taken);
-        if (takenNumbers.find(toTake) == takenNumbers.end())
+        if (takenNumbers.find(toTake) == takenNumbers.end()) {
             sample.push_back(toTake);
-        else
+            takenNumbers.insert(toTake);
+        }
+        else {
             sample.push_back(to - numbers + taken);
+            takenNumbers.insert(to - numbers + taken);
+        }
     }
 
     sort(sample.begin(), sample.end());
@@ -74,7 +78,7 @@ Container randomSubsequence(const Container& data, const int &newSize) {
     limitHashes /= log;
 
     if (newSize <= limitHashes) {
-        auto markedPositions = sample(newSize, 0, data.size() - 1);
+        auto markedPositions = randomSample(newSize, 0, int(data.size()) - 1);
 
         Container result;
         for (auto &position: markedPositions) {
@@ -100,6 +104,11 @@ Container randomSubsequence(const Container& data, const int &newSize) {
                 result.push_back(data[i]);
         return result;
     }
+}
+
+template<class Container>
+Container randomSubsequence(const Container& data, const unsigned &newSize) {
+    return randomSubsequence(data, int(newSize));
 }
 
 template<class Container>

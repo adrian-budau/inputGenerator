@@ -83,6 +83,18 @@ class Graph {
 
     Graph(const int& _size = 1, const int& _indexStart = 0);
 
+    // shallow copy
+    Graph<NodeData, EdgeData>& operator=(const Graph<NodeData, EdgeData> &) = default;
+
+    // shallow copy too
+    Graph(const Graph&) = default;
+
+    // and some deep copy
+    Graph<NodeData, EdgeData> clone() const;
+
+    // really important not to leak memory
+    void reset();
+
     void Index(std::initializer_list< std::pair<Node, int> > fixed, const int &from = 0);
 
     void Index(const int &from = 0);
@@ -106,15 +118,32 @@ class Graph {
     }
 
     Node& operator[](const int &position) {
-        return nodes[position];
+        if (position < indexStart || position >= indexStart + size())
+            throw Exception("index out of range in the graph");
+
+        return nodes[position - indexStart];
     }
 
     const Node& operator[](const int &position) const {
-        return nodes[position];
+        if (position < indexStart || position >= indexStart + size())
+            throw Exception("index out of range in the graph");
+        return nodes[position - indexStart];
     }
 
     int size() const {
         return nodes.size();
+    }
+
+    std::vector<EdgeType> arcs(const bool &forceSearch = true) const;
+
+    std::vector<EdgeType> edges(const bool &forceSearch = true) const;
+
+    int min() const {
+        return indexStart;
+    }
+
+    int max() const {
+        return indexStart + size() - 1;
     }
 
   private:
@@ -126,12 +155,26 @@ class Graph {
 template<class NodeData, class EdgeData>
 Graph<NodeData, EdgeData>::Graph(const int& _size, const int& _indexStart) {
     // we create _size new nodes
-    nodes.resize(_size);
+    nodes.reserve(_size);
     for (int i = 0; i < _size; ++i)
-        nodes[i] = Node(i);
+        nodes.push_back(Node(i));
 
     // make it so it supports both possibilities(nodes from 0 to size - 1 or from 1 to size)
     indexStart = _indexStart;
+}
+
+template<class NodeData, class EdgeData>
+Graph<NodeData, EdgeData> Graph<NodeData, EdgeData>::clone() const {
+    Graph<NodeData, EdgeData> newGraph(size(), indexStart);
+
+    for (auto &arc: arcs(true)) {
+        newGraph[arc.from().index()].addEdge(newGraph[arc.to().index()], arc.data());
+    }
+
+    for (auto &edge: edges(true))
+        auto edge2 = addEdge(newGraph[edge.from().index()], newGraph[edge.to().index()], edge.data());
+
+    return newGraph;
 }
 
 template<class NodeData, class EdgeData>
@@ -193,6 +236,43 @@ void Graph<NodeData, EdgeData>::addNodes(std::initializer_list<Node> newNodes) {
     for (auto &node: newNodes)
         node.index() = newIndex++;
     nodes.insert(nodes.end(), newNodes.begin(), newNodes.end());
+}
+
+template<class NodeData, class EdgeData>
+std::vector<_Edge<NodeData, EdgeData>> Graph<NodeData, EdgeData>::arcs(const bool& forceSearch) const {
+    std::vector<_Edge<NodeData, EdgeData>> result;
+    for (auto &node: nodes) {
+        auto toAdd = node.arcs(forceSearch);
+
+        result.insert(result.end(), toAdd.begin(), toAdd.end());
+    }
+    return result;
+}
+
+template<class NodeData, class EdgeData>
+std::vector<_Edge<NodeData, EdgeData>> Graph<NodeData, EdgeData>::edges(const bool& forceSearch) const {
+    std::vector<_Edge<NodeData, EdgeData>> result;
+    for (auto &node: nodes) {
+        auto toAdd = node.edges(forceSearch);
+
+        for (auto &edge: toAdd)
+            if (edge.to().index() < edge.from().index())
+                result.push_back(edge);
+
+    }
+
+    return result;
+}
+
+
+// specialization for shuffle
+template<class NodeData, class EdgeData>
+Graph<NodeData, EdgeData> shuffle(const Graph<NodeData, EdgeData>& graph) {
+    auto newGraph = graph.clone();
+
+    newGraph.Index();
+
+    return newGraph;
 }
 
 }
