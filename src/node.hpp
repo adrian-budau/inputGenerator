@@ -288,6 +288,10 @@ class NodeWrapper {
         internalNode -> clear();
     }
 
+    bool operator==(const NodeWrapper<NodeData, EdgeData> &that) const {
+        return internalNode == that.internalNode;
+    }
+
   private:
     std::shared_ptr<NodeType> internalNode;
 };

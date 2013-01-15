@@ -138,6 +138,8 @@ class Graph {
 
     std::vector<EdgeType> edges(const bool &forceSearch = true) const;
 
+    bool hasNode(const Node&) const;
+
     int min() const {
         return indexStart;
     }
@@ -256,7 +258,10 @@ std::vector<_Edge<NodeData, EdgeData>> Graph<NodeData, EdgeData>::edges(const bo
         auto toAdd = node.edges(forceSearch);
 
         for (auto &edge: toAdd)
-            if (edge.to().index() < edge.from().index())
+            if (hasNode(edge.to())) {
+                if (edge.from().index() < edge.to().index())
+                    result.push_back(edge);
+            } else
                 result.push_back(edge);
 
     }
@@ -264,6 +269,13 @@ std::vector<_Edge<NodeData, EdgeData>> Graph<NodeData, EdgeData>::edges(const bo
     return result;
 }
 
+template<class NodeData, class EdgeData>
+bool Graph<NodeData, EdgeData>::hasNode(const Node& that) const {
+    if (that.index() < indexStart || that.index() >= indexStart + int(nodes.size()))
+        return false;
+
+    return (*this)[that.index()] == that;
+}
 
 // specialization for shuffle
 template<class NodeData, class EdgeData>
