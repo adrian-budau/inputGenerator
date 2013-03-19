@@ -8,13 +8,13 @@ namespace inputGenerator {
 
 class Exception: public std::exception {
   public:
-    Exception(const std::string &_message): message(_message) {}
+    Exception(const char *message): message_(message) {}
     virtual const char* what() const throw() {
-        return message.c_str();
+        return message_;
     }
 
     virtual ~Exception() throw() {};
-    const std::string message;
+    const char * message_;
 };
 
 }

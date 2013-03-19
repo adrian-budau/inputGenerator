@@ -1,7 +1,7 @@
 #include <string>
 #include <iostream>
 
-#include "../inputGenerator.hpp"
+#include "../src/strings.hpp"
 
 using namespace std;
 using namespace inputGenerator;

@@ -3,36 +3,48 @@
 
 #include <string>
 #include <vector>
+#include <utility>
 
 #include "exception.hpp"
 #include "numbers.hpp"
 #include "vectors.hpp"
 
 namespace inputGenerator {
-std::string randomString(const int &size, const std::string &dictionary, const int &maxSame) {
+std::string randomString(const size_t &size, const std::string &dictionary, const size_t &maxSame) {
     if (size == 0)
         return "";
 
+#ifdef INPUT_GENERATOR_DEBUG
     if (int(dictionary.size()) == 0)
         throw Exception("randomString expects the `dictionary` size to be bigger than 0 when asked to generate a non-null string");
 
     if (int64_t(maxSame) * int64_t(dictionary.size()) < size)
         throw Exception("randomString expects the `size` to be lower than the product of the `dictionary` size and the maximum number of identical characters");
+#endif
+    if (maxSame >= size) {
+        std::string result;
+        for (size_t i = 0; i < size; ++i)
+            result.push_back(randomElement(dictionary));
+        return result;
+    }
 
     // the count
-    std::vector<int> count(dictionary.size(), 0);
+    std::vector<size_t> count(dictionary.size(), 0);
+    std::string temporary_dictionary(dictionary);
+    size_t leftCharacters = temporary_dictionary.size();
 
     std::string result;
     result.reserve(size);
-    for (int i = 0; i < size; ++i) {
-        int character;
+    for (size_t i = 0; i < size; ++i) {
+        size_t character = randomUInt(0, leftCharacters - 1);
+        result.push_back(temporary_dictionary[character]);
 
-        do {
-            character = randomInt(0, dictionary.size() - 1);
-        } while (maxSame > 0 && count[character] == maxSame);
+        if (++count[character] == maxSame) {
+            --leftCharacters;
+            std::swap(count[character], count[leftCharacters]);
 
-        ++count[character];
-        result.push_back(dictionary[character]);
+            std::swap(temporary_dictionary[character], temporary_dictionary[leftCharacters]);
+        }
     }
 
     return result;
@@ -40,7 +52,7 @@ std::string randomString(const int &size, const std::string &dictionary, const i
 
 std::string randomString(const int &size, const std::string &dictionary) {
     // no exceptions thrown here because the function with the same name will throw them
-    return randomString(size, dictionary, dictionary.size());
+    return randomString(size, dictionary, size);
 }
 
 const std::string lowerLetters = "abcdefghijklmnopqrstuvwxyz";

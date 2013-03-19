@@ -48,6 +48,9 @@ int main() {
     cout << "Random Path of length 5 (directed graph): " << endl;
     cout << path(5) << endl;
 
+    Boolean::Object v = Boolean::True;
+    if (v)
+        cout << "ce faci\n";
     // now we seed again, this time completly random
     // we have to recreate the generator also
     Seed::create();

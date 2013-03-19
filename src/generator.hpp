@@ -45,5 +45,16 @@ std::mt19937& Generator::getGenerator() {
     return generator;
 }
 
+void reSeed() {
+    Seed::create();
+    Generator::create();
 }
+
+void reSeed(Seed::data_type seed) {
+    Seed::create(seed);
+    Generator::create();
+}
+
+}
+
 #endif // INPUT_GENERATOR_GENERATOR_HPP_

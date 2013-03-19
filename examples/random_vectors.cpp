@@ -2,7 +2,7 @@
 #include <string>
 #include <iostream>
 
-#include "../inputGenerator.hpp"
+#include "../src/vectors.hpp"
 
 using namespace std;
 using namespace inputGenerator;
@@ -24,7 +24,7 @@ int main() {
     cout << "The array: " << array << endl;
     cout << "Random element of the array: " << randomElement(array) << endl;
     cout << "Random shuffle of the array: " << shuffle(array) << endl;
-    cout << "Random subsequence of the array: " << randomSubsequence(array) << endl;
+    cout << "Random non-empty subsequence of the array: " << randomSubsequence(array, Boolean::False) << endl;
     cout << "Random substring of the array: " << randomSubstring(array) << endl;
 
     cout << endl;
@@ -37,7 +37,7 @@ int main() {
 
     cout << endl;
 
-    cout << "5 Random 64 bits numbers: " << randomSample<int64_t>(5, -1e18, 1e18) << endl;
+    cout << "5 Random 64 bits numbers: " << randomSample<int64_t>(5) << endl;
     cout << "Random partition of the number 10: " << randomPartition(10) << endl;
     cout << "Random partition of the number 10 in 3 parts: " << randomPartition(10, 3) << endl;
     cout << "Random partition of the number 10^18 in 4 parts (complexity is linear on the number of parts): " << randomPartition(int64_t(1e18), 4) << endl;

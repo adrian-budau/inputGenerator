@@ -1,4 +1,5 @@
 #include "src/exception.hpp"
+#include "src/boolean.hpp"
 #include "src/numbers.hpp"
 #include "src/vectors.hpp"
 #include "src/strings.hpp"

@@ -5,28 +5,70 @@
 #include <random>
 #include <utility>
 #include <unordered_set>
-
+#include <algorithm>
+#include "boolean.hpp"
 #include "exception.hpp"
 #include "generator.hpp"
 #include "numbers.hpp"
 
 namespace inputGenerator {
 
+template<class RandomAccessIterator>
+void randomShuffle(RandomAccessIterator first, RandomAccessIterator last) {
+    for (RandomAccessIterator it = first + 1; it != last; ++it)
+        std::iter_swap(it, first + randomInt<std::ptrdiff_t>(0, last - first - 1));
+}
+
 template<class Container>
 Container shuffle(const Container& data) {
-    Container result = data;
-
-    // we go through each position and chose a random character, using our generator so given seeds give the same shuffle
-    for (int i = 0; i < int(result.size()); ++i) {
-        int position = randomInt(i, result.size() - 1);
-        swap(result[i], result[position]);
-    }
-
+    Container result(data);
+    randomShuffle(result.begin(), result.end());
     return result;
 }
 
+template<class Container>
+typename std::enable_if<
+    !std::is_reference<Container>::value,
+    Container>::type shuffle(Container&& data) {
+    Container result(std::move(data));
+
+    // we go through each position and chose a random character, using our generator so given seeds give the same shuffle
+    randomShuffle(result.begin(), result.end());
+    return result;
+}
+
+template<class Iterator>
+typename std::iterator_traits<Iterator>::reference randomElement(Iterator first, Iterator last) {
+#ifdef INPUT_GENERATOR_DEBUG
+    if (first == last)
+        throw Exception("randomElement expects `first` to be different than `last`");
+#endif
+
+    advance(first, randomInt<std::ptrdiff_t>(0, distance(first, last) - 1));
+    return *first;
+}
+
+template<class Container>
+auto randomElement(Container &&data) -> typename std::iterator_traits<decltype(data.begin())>::reference {
+#ifdef INPUT_GENERATOR_DEBUG
+    if (data.size() == 0)
+        throw Exception("randomElement is expecting a non-empty container");
+#endif
+    return randomElement(data.begin(), data.end());
+}
+
+template<class DataType>
+DataType randomElement(std::initializer_list<DataType> data) {
+#ifdef INPUT_GENERATOR_DEBUG
+    if (data.size() == 0)
+        throw Exception("randomElement is expecting a non-empty container");
+#endif
+    return randomElement(data.begin(), data.end());
+}
+
 template<class IntType = int>
-std::vector<IntType> randomSample(const int& numbers, const IntType& from = std::numeric_limits<IntType>::min(), const IntType& to = std::numeric_limits<IntType>::max()) {
+std::vector<IntType> randomSample(const size_t& numbers, const IntType& from = std::numeric_limits<IntType>::min(), const IntType& to = std::numeric_limits<IntType>::max()) {
+#ifdef INPUT_GENERATOR_DEBUG
     if (numbers < 0)
         throw Exception("randomSample expects `numbers` to be positive");
 
@@ -35,14 +77,15 @@ std::vector<IntType> randomSample(const int& numbers, const IntType& from = std:
 
     if (numbers == 0)
         return std::vector<IntType>();
+#endif
 
     std::unordered_set<IntType> takenNumbers;
     std::vector<IntType> sample;
     sample.reserve(numbers); // for some extra speed
 
-    for (int taken = 1; taken <= numbers; ++taken) {
+    for (size_t taken = 0; taken < numbers; ++taken) {
         // long live "Programming Pearls"
-        IntType toTake = randomIntType<IntType>(from, to - numbers + taken);
+        IntType toTake = randomInt<IntType>(from, to - numbers + taken);
         if (takenNumbers.find(toTake) == takenNumbers.end()) {
             sample.push_back(toTake);
             takenNumbers.insert(toTake);
@@ -58,27 +101,28 @@ std::vector<IntType> randomSample(const int& numbers, const IntType& from = std:
 }
 
 template<class Container>
-Container randomSubsequence(const Container& data, const int &newSize) {
-    if (newSize < 0 || newSize > int(data.size()))
-        throw Exception("randomSubsequence expects the `newSize` to be at least 0 and at most the container's size");
+Container randomSubsequence(const Container& data, const size_t &newSize) {
+#ifdef INPUT_GENERATOR_DEBUG
+    if (newSize > data.size())
+        throw Exception("randomSubsequence expects the `newSize` to be at most the container's size");
+#endif
 
     if (data.size() == 0 || newSize == 0)
         return Container();
 
     // fast for getting exactly one character
     if (newSize == 1) {
-        int position = randomInt(0, data.size() - 1);
-        Container result(1, data[position]);
+        Container result(1, randomElement(data));
         return result;
     }
 
     // we use the randomSample algorithm if the requested size is smaller than data.size() / log
-    int limitHashes = data.size(), log;
-    for (log = 1; (1 << log) < int(data.size()); ++log);
+    size_t limitHashes = data.size(), log;
+    for (log = 1; (1u << log) < data.size(); ++log);
     limitHashes /= log;
 
     if (newSize <= limitHashes) {
-        auto markedPositions = randomSample(newSize, 0, int(data.size()) - 1);
+        auto markedPositions = randomSample<size_t>(newSize, 0u, data.size() - 1);
 
         Container result;
         for (auto &position: markedPositions) {
@@ -87,19 +131,19 @@ Container randomSubsequence(const Container& data, const int &newSize) {
 
         return result;
     } else {
-        std::vector<int> positions(data.size());
-        for (int i = 0; i < int(data.size()); ++i)
+        std::vector<size_t> positions(data.size());
+        for (size_t i = 0; i < data.size(); ++i)
             positions[i] = i;
 
         positions = shuffle(positions);
 
         std::vector<bool> marked(data.size(), false);
-        for (int i = 0; i < newSize; ++i)
+        for (size_t i = 0; i < newSize; ++i)
             marked[positions[i]] = true;
 
         Container result;
         result.reserve(newSize);
-        for (int i = 0; i < int(data.size()); ++i)
+        for (size_t i = 0; i < data.size(); ++i)
             if (marked[i])
                 result.push_back(data[i]);
         return result;
@@ -107,21 +151,17 @@ Container randomSubsequence(const Container& data, const int &newSize) {
 }
 
 template<class Container>
-Container randomSubsequence(const Container& data, const unsigned &newSize) {
-    return randomSubsequence(data, int(newSize));
-}
-
-template<class Container>
-Container randomSubsequence(const Container& data, const bool& canNull = true) {
-    if (int(data.size()) == 0 && canNull == false)
+Container randomSubsequence(const Container& data, Boolean::Object canNull = Boolean::True) {
+#ifdef INPUT_GENERATOR_DEBUG
+    if (data.size() == 0 && !canNull)
         throw Exception("randomSubsequence on an empty container must have `canNull` true");
-
+#endif
     Container result;
     result.reserve(data.size());
     do {
         result.clear();
-        for (int i = 0; i < int(data.size()); ++i)
-            if (randomInt(0, 1) == 1)
+        for (size_t i = 0; i < data.size(); ++i)
+            if (randomElement({true, false}))
                 result.push_back(data[i]);
     } while (result.size() == 0 && !canNull);
 
@@ -129,54 +169,55 @@ Container randomSubsequence(const Container& data, const bool& canNull = true) {
 }
 
 template<class Container>
-Container randomSubstring(const Container& data, const int &newSize) {
-    if (newSize < 0 || newSize > int(data.size()))
-        throw Exception("randomSubstring expects the `newSize` to be at least 0 and at most the container's size");
-
+Container randomSubstring(const Container& data, const size_t &newSize) {
+#ifdef INPUT_GENERATOR_DEBUG
+    if (newSize < 0 || newSize > data.size())
+        throw Exception("randomSubstring expects the `newSize` to be at most the container's size");
+#endif
 
     if (data.size() == 0 || newSize == 0)
         return Container();
 
     // fast for getting exactly one character
     if (newSize == 1) {
-        int position = randomInt(0, data.size() - 1);
-        Container result(1, data[position]);
+        Container result(1, randomElement(data));
         return result;
     }
 
     // This is easy because each start position has the same probability of appearing
-    int position = randomInt(0, data.size() - newSize);
+    size_t position = randomUInt(0, data.size() - newSize);
 
     Container result;
     result.reserve(newSize);
-    for (int i = position; i < position + newSize; ++i)
+    for (size_t i = position; i < position + newSize; ++i)
         result.push_back(data[i]);
 
     return result;
 }
 
 template<class Container>
-Container randomSubstring(const Container& data, const int &least, const int &most) {
-    if (least < 0 || least > int(data.size()))
-        throw Exception("randomSubstring expects `least` to be at least 0 and at most the container's size");
+Container randomSubstring(const Container& data, const size_t &least, const size_t &most) {
+#ifdef INPUT_GENERATOR_DEBUG
+    if (least > data.size())
+        throw Exception("randomSubstring expects `least` to be at most the container's size");
 
-    if (most < 0 || most > int(data.size()))
-        throw Exception("randomSubstring expects `most` to be at least 0 and at most the container's size");
+    if (most > data.size())
+        throw Exception("randomSubstring expects `most` to be at at most the container's size");
 
     if (least > most)
         throw Exception("randomSubstring expects `least` to be lower than or equal than `most`");
-
+#endif
 
     // Very very hard, especially because we have to give different probabilities to each length
     std::vector<double> weight(data.size() + 1, 0.0);
-    for (int i = least; i <= most; ++i)
+    for (size_t i = least; i <= most; ++i)
         weight[i] = data.size() - i + 1;
 
     if (least == 0)
         weight[0] = 1;
 
-    std::discrete_distribution<int>  distribution(weight.begin(), weight.end());
-    int length = distribution(Generator::getGenerator());
+    std::discrete_distribution<size_t>  distribution(weight.begin(), weight.end());
+    size_t length = distribution(Generator::getGenerator());
     return randomSubstring(data, length);
 }
 
@@ -186,33 +227,15 @@ Container randomSubstring(const Container &data) {
     return randomSubstring(data, 0, data.size());
 }
 
-template<class Container>
-auto randomElement(Container &data) -> typename std::iterator_traits<decltype(data.begin())>::reference {
-    if (data.size() == 0)
-        throw Exception("randomElement is expecting a non-empty container");
-    return data[randomInt(0, data.size() - 1)];
-}
-
-template<class Container>
-auto randomElement(const Container &data) -> typename std::iterator_traits<decltype(data.begin())>::reference {
-    if (data.size() == 0)
-        throw Exception("randomElement is expecting a non-empty container");
-    return data[randomInt(0, data.size() - 1)];
-}
-
-template<class DataType>
-DataType randomElement(std::initializer_list<DataType> data) {
-    return randomElement(std::vector<DataType>(data));
-}
-
 template<class IntType = int>
-std::vector<IntType> randomPartition(const IntType &number, const int &parts) {
+std::vector<IntType> randomPartition(const IntType &number, const size_t &parts) {
+#ifdef INPUT_GENERATOR_DEBUG
     if (number < 1)
         throw Exception("randomPartition expects `number` to be strictly positive");
 
     if (parts < 1 || parts > number)
         throw Exception("randomParition expects `parts` to be between 1 and `number`");
-
+#endif
     auto splits = randomSample<IntType>(parts - 1, 2, number);
 
     std::vector<IntType> result;
@@ -229,9 +252,10 @@ std::vector<IntType> randomPartition(const IntType &number, const int &parts) {
 }
 
 std::vector<int> randomPartition(const int &number) {
+#ifdef INPUT_GENERATOR_DEBUG
     if (number < 1)
         throw Exception("randomPartition expects `number` to be strictly positive");
-
+#endif
     std::vector<int> numbers;
     int lastSplit = 0;
     for (int i = 1; i < number; ++i) {
