@@ -53,7 +53,7 @@ int main() {
     Seed::create();
     Generator::create();
 
-    auto graph = path(5, false);
+    auto graph = path(5, Boolean::False);
     graph.Index({{graph[0], 5}, {graph[4], 6}}, 5);
     cout << "Random Path of length 5 indexed from 5 to 9 starting from node with index 5 and ending at node with index 6: " << endl;
     cout << graph << "\n";

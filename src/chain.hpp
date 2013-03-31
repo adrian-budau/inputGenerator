@@ -2,6 +2,7 @@
 #define INPUT_GENERATOR_CHAIN_HPP_
 
 #include "exception.hpp"
+#include "boolean.hpp"
 #include "graph.hpp"
 
 namespace inputGenerator {
@@ -9,7 +10,7 @@ namespace inputGenerator {
 // you can generate a non-random graph if you really want by making the second parameter false
 // this is undirected
 template<class NodeData = int, class EdgeData = int>
-Graph<NodeData, EdgeData> chain(const int &size = 1, const bool &random = true ) {
+Graph<NodeData, EdgeData> chain(const int &size = 1, Boolean::Object random = Boolean::True) {
     if (size <= 0)
         throw Exception("Chains must have strictly positive sizes");
 
@@ -25,7 +26,7 @@ Graph<NodeData, EdgeData> chain(const int &size = 1, const bool &random = true )
 }
 
 template<class NodeData = int, class EdgeData = int>
-Graph<NodeData, EdgeData> path(const int &size = 1, const bool &random = true) {
+Graph<NodeData, EdgeData> path(const int &size = 1, Boolean::Object random = Boolean::True) {
     if (size <= 0)
         throw Exception("Paths must have strictly positive sizes");
 
