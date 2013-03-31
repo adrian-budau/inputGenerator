@@ -97,14 +97,15 @@ class Graph {
     // and some deep copy
     Graph<NodeData, EdgeData> clone() const;
 
-    // really important not to leak memory
-    void reset();
+    void clear();
 
     void Index(std::initializer_list< std::pair<Node, int> > fixed, const int &from = 0);
 
     void Index(const int &from = 0);
 
     void addNodes(std::initializer_list<Node>);
+
+    void mergeGraph(const Graph<NodeData, EdgeData> &);
 
     iterator begin() {
         return iterator(nodes.begin());
@@ -185,6 +186,11 @@ Graph<NodeData, EdgeData> Graph<NodeData, EdgeData>::clone() const {
 }
 
 template<class NodeData, class EdgeData>
+void Graph<NodeData, EdgeData>::clear() {
+    std::vector<Node>().swap(nodes);
+}
+
+template<class NodeData, class EdgeData>
 void Graph<NodeData, EdgeData>::Index(std::initializer_list< std::pair<Node, int> > fixed, const int &from) {
     // we go through each fixed node and keep track of it
     std::unordered_set<unsigned> fixedNodes;
@@ -243,6 +249,12 @@ void Graph<NodeData, EdgeData>::addNodes(std::initializer_list<Node> newNodes) {
     for (auto &node: newNodes)
         node.index() = newIndex++;
     nodes.insert(nodes.end(), newNodes.begin(), newNodes.end());
+}
+
+template<class NodeData, class EdgeData>
+void Graph<NodeData, EdgeData>::mergeGraph(const Graph<NodeData, EdgeData> &that) {
+    for (auto &node: that)
+        addNodes({node});
 }
 
 template<class NodeData, class EdgeData>
