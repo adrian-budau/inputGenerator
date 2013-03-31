@@ -49,7 +49,7 @@ typename std::iterator_traits<Iterator>::reference randomElement(Iterator first,
 }
 
 template<class Container>
-auto randomElement(Container &&data) -> typename std::iterator_traits<decltype(data.begin())>::reference {
+auto randomElement(const Container &data) -> typename std::iterator_traits<decltype(data.begin())>::reference {
 #ifdef INPUT_GENERATOR_DEBUG
     if (data.size() == 0)
         throw Exception("randomElement is expecting a non-empty container");
@@ -69,15 +69,19 @@ DataType randomElement(std::initializer_list<DataType> data) {
 template<class IntType = int>
 std::vector<IntType> randomSample(const size_t& numbers, const IntType& from = std::numeric_limits<IntType>::min(), const IntType& to = std::numeric_limits<IntType>::max()) {
 #ifdef INPUT_GENERATOR_DEBUG
-    if (numbers < 0)
-        throw Exception("randomSample expects `numbers` to be positive");
-
     if (from > to)
         throw Exception("randomSample expects `from` to be at most `to`");
 
     if (numbers == 0)
         return std::vector<IntType>();
 #endif
+
+    if (to - from + 1 == IntType(numbers)) {
+        std::vector<IntType> sample(numbers);
+        for (size_t i = 0; i < numbers; ++i)
+            sample[i] = from + i;
+        return sample;
+    }
 
     std::unordered_set<IntType> takenNumbers;
     std::vector<IntType> sample;
@@ -233,7 +237,7 @@ std::vector<IntType> randomPartition(const IntType &number, const size_t &parts)
     if (number < 1)
         throw Exception("randomPartition expects `number` to be strictly positive");
 
-    if (parts < 1 || parts > number)
+    if (parts < 1 || IntType(parts) > number)
         throw Exception("randomParition expects `parts` to be between 1 and `number`");
 #endif
     auto splits = randomSample<IntType>(parts - 1, 2, number);

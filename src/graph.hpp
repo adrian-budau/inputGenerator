@@ -59,6 +59,11 @@ class Graph {
             return newIterator;
         }
 
+        Iterator& operator+=(const size_t &difference) {
+            alpha += difference;
+            return *this;
+        }
+
         bool operator==(const Iterator& that) {
             return alpha == that.alpha;
         }

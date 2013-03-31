@@ -1,6 +1,6 @@
 #include <iostream>
 
-#include "../inputGenerator.hpp"
+#include "../src/tree.hpp"
 
 using namespace std;
 using namespace inputGenerator;
@@ -39,6 +39,10 @@ ostream& operator<<(ostream& cout, const Graph<>& V) {
 }
 
 int main() {
-    cout << "Random tree of size 5: " << tree(5) << "\n";
+    cout << "Random tree of size 5: " << tree(5) << endl;
+
+    cout << endl;
+
+    cout << "Random tree of size 8 but with diameter at least 4: " << wideTree(8, 4) << endl;
 }
 

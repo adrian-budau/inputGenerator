@@ -1,6 +1,7 @@
 #include <iostream>
 
-#include "../inputGenerator.hpp"
+#define INPUT_GENERATOR_DEBUG
+#include "../src/bipartite.hpp"
 
 using namespace std;
 using namespace inputGenerator;

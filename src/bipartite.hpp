@@ -8,6 +8,7 @@
 #include "exception.hpp"
 #include "numbers.hpp"
 #include "vectors.hpp"
+#include "graph.hpp"
 
 namespace inputGenerator {
 
@@ -119,6 +120,7 @@ std::pair<Graph<NodeData, EdgeData>, Graph<NodeData, EdgeData>> regularBipartite
                     ++pickedOnes;
         }
 
+        std::cerr << " ---------------------- " << i << "\n";
         // so let's pick those with degree 1
         for (auto &node: randomSubsequence(nodesByDegree[1], pickedOnes))
             picked.push_back({node, update(node)});
@@ -126,6 +128,7 @@ std::pair<Graph<NodeData, EdgeData>, Graph<NodeData, EdgeData>> regularBipartite
         for (auto &node: randomSubsequence(nodesArray, int(degree - picked.size())))
             picked.push_back({node, update(node)});
 
+        std::cerr << " ---------------------- " << i << "\n";
         for (auto &node: picked) {
             addEdge(leftGraph[i], rightGraph[node.first]);
             nodesByDegree[node.second - 1].push_back(node.first);
