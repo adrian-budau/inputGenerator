@@ -44,7 +44,7 @@ typename std::iterator_traits<Iterator>::reference randomElement(Iterator first,
         throw Exception("randomElement expects `first` to be different than `last`");
 #endif
 
-    advance(first, randomInt<std::ptrdiff_t>(0, distance(first, last) - 1));
+    std::advance(first, randomInt<std::ptrdiff_t>(0, std::distance(first, last) - 1));
     return *first;
 }
 
