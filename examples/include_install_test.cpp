@@ -1,6 +1,7 @@
 #include <iostream>
 
 // this should work only if the library was installed right
+#define INPUT_GENERATOR_DEBUG
 #include <inputGenerator.hpp>
 
 using namespace std;
