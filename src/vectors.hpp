@@ -72,7 +72,7 @@ std::vector<IntType> randomSample(const size_t& numbers, const IntType& from = s
     if (from > to)
         throw Exception("randomSample expects `from` to be at most `to`");
 
-    if (numbers > int64_t(to) - from + 1)
+    if (int64_t(numbers) > int64_t(to) - int64_t(from) + 1)
         throw Exception("randomSample expects `numbers` to be at most the number of elements in the interval");
 #endif
 

@@ -79,7 +79,7 @@ std::pair<Graph<NodeData, EdgeData>, Graph<NodeData, EdgeData>> regularBipartite
         whereArray[i] = i;
     }
 
-    auto update = [&](const int &node) {
+    auto update = [&](const int &node) -> int {
         int row = whereMatrix[node].first;
         int column = whereMatrix[node].second;
         int position = whereArray[node];

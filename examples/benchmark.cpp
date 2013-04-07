@@ -17,10 +17,10 @@ double time_elapsed(const duration_type & d) {
 
 template<class function>
 double time_taken(function f) {
-    auto start = steady_clock::now();
+    auto start = system_clock::now();
 
     f();
-    auto end = steady_clock::now();
+    auto end = system_clock::now();
 
     return time_elapsed(end - start);
 }
@@ -31,11 +31,11 @@ void testRandomInt() {
     int N = 100000000;
 
     int *A = new int[N];
-    auto start = steady_clock::now();
+    auto start = system_clock::now();
 
     for (int i = 0; i < N; ++i)
         A[i] = inputGenerator::randomInt(0, std::numeric_limits<int>::max());
-    auto mid = steady_clock::now();
+    auto mid = system_clock::now();
 
     double first = time_elapsed(mid - start);
 
@@ -43,7 +43,7 @@ void testRandomInt() {
     for (int i = 0; i < N; ++i)
         A[i] = rand() % INT_MAX;
 
-    auto end = steady_clock::now();
+    auto end = system_clock::now();
 
     double second = time_elapsed(end - mid);
 

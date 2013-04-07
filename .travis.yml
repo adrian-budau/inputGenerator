@@ -1,0 +1,19 @@
+language: cpp
+compiler:
+  - gcc
+  - clang
+
+script: make test
+
+branches:
+  only:
+    - master
+
+notifications:
+  recipients:
+    - budau.adi@gmail.com
+
+  email:
+    on_success: change
+    on_failure: always
+

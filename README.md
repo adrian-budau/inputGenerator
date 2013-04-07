@@ -1,5 +1,6 @@
 inputGenerator
 ==============
+[![Build Status](https://travis-ci.org/adrian-budau/inputGenerator.png?branch=master)](https://travis-ci.org/adrian-budau/inputGenerator)
 
 Description
 --------------
@@ -7,6 +8,7 @@ Description
 A library to generate input for programming tasks
 
 You just add the folder anywhere in your project and include the file "inputGenerator.hpp" which will include all sublibraries
+
 If you need only sub parts include them from the subfolder "src"
 
 Install
