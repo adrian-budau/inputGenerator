@@ -68,13 +68,14 @@ std::pair<Graph<NodeData, EdgeData>, Graph<NodeData, EdgeData>> regularBipartite
     std::vector<std::vector<int>> nodesByDegree(degree + 1);
     std::vector<std::pair<int, int>> whereMatrix(nodes);
 
-    std::vector<int> nodesArray(nodes);
+    std::vector<int> nodesArray(nodes * (degree > 1));
     std::vector<int> whereArray(nodes);
     for (int i = 0; i < nodes; ++i) {
         nodesByDegree[degree].push_back(i);
         whereMatrix[i] = {degree, i};
 
-        nodesArray[i] = i;
+        if (degree != 1)
+            nodesArray[i] = i;
         whereArray[i] = i;
     }
 
@@ -97,7 +98,7 @@ std::pair<Graph<NodeData, EdgeData>, Graph<NodeData, EdgeData>> regularBipartite
     };
 
     for (int i = 0; i < nodes; ++i) {
-       // first we have to pick all nodes of degree nodes - i
+        // first we have to pick all nodes of degree nodes - i
         std::vector<std::pair<int, int>> picked;
         picked.reserve(degree);
 
@@ -105,7 +106,7 @@ std::pair<Graph<NodeData, EdgeData>, Graph<NodeData, EdgeData>> regularBipartite
         int maxOnes = std::min(nodesArray.size() + nodesByDegree[1].size() - degree, nodesByDegree[1].size());
 
         if (nodes - i <= degree)
-            for (auto &node: nodesByDegree[nodes - i])
+            for (auto node: std::vector<int>(nodesByDegree[nodes - i])) // we need to make a copy so we don't invalidate anything
                 picked.push_back({node, update(node)});
 
         // now we have left to pick degree  - picked.size()
@@ -120,7 +121,6 @@ std::pair<Graph<NodeData, EdgeData>, Graph<NodeData, EdgeData>> regularBipartite
                     ++pickedOnes;
         }
 
-        std::cerr << " ---------------------- " << i << "\n";
         // so let's pick those with degree 1
         for (auto &node: randomSubsequence(nodesByDegree[1], pickedOnes))
             picked.push_back({node, update(node)});
@@ -128,7 +128,6 @@ std::pair<Graph<NodeData, EdgeData>, Graph<NodeData, EdgeData>> regularBipartite
         for (auto &node: randomSubsequence(nodesArray, int(degree - picked.size())))
             picked.push_back({node, update(node)});
 
-        std::cerr << " ---------------------- " << i << "\n";
         for (auto &node: picked) {
             addEdge(leftGraph[i], rightGraph[node.first]);
             nodesByDegree[node.second - 1].push_back(node.first);
@@ -139,7 +138,7 @@ std::pair<Graph<NodeData, EdgeData>, Graph<NodeData, EdgeData>> regularBipartite
                 whereArray[node.first] = nodesArray.size() - 1;
             }
         }
-    }
+   }
 
     return {leftGraph, rightGraph};
 }

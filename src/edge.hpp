@@ -31,13 +31,15 @@ class _Edge {
 
     const unsigned& getKey() const;
 
-    NodeWrapper<NodeData, EdgeData> from();
+    NodeWrapper<NodeData, EdgeData> from() const;
 
-    NodeWrapper<NodeData, EdgeData> to();
+    NodeWrapper<NodeData, EdgeData> to() const;
 
     EdgeData& data() const;
 
     std::shared_ptr<EdgeData> dataPointer() const;
+
+    bool operator==(const EdgeType&) const;
 
   private:
     friend class _Node<NodeData, EdgeData>;
@@ -89,12 +91,12 @@ const unsigned& _Edge<NodeData, EdgeData>::getKey() const {
 }
 
 template<class NodeData, class EdgeData>
-NodeWrapper<NodeData, EdgeData> _Edge<NodeData, EdgeData>::from() {
+NodeWrapper<NodeData, EdgeData> _Edge<NodeData, EdgeData>::from() const {
     return _from.lock();
 }
 
 template<class NodeData, class EdgeData>
-NodeWrapper<NodeData, EdgeData> _Edge<NodeData, EdgeData>::to() {
+NodeWrapper<NodeData, EdgeData> _Edge<NodeData, EdgeData>::to() const {
     return _to.lock();
 }
 
@@ -113,6 +115,18 @@ _Edge<NodeData, EdgeData> addEdge(const NodeWrapper<NodeData, EdgeData> &from, c
     auto edge = from.addEdge(to, data);
     to.addEdge(from, edge.dataPointer(), edge.getKey());
     return edge;
+}
+
+template<class NodeData, class EdgeData>
+bool eraseEdge(const _Edge<NodeData, EdgeData> &edge) {
+    //edge lives in from so let's delete from the other end first
+    edge.to().eraseEdge(edge);
+    return edge.from().eraseEdge(edge);
+}
+
+template<class NodeData, class EdgeData>
+bool _Edge<NodeData, EdgeData>::operator==(const _Edge<NodeData, EdgeData> &edge) const {
+    return getKey() == edge.getKey();
 }
 
 /*

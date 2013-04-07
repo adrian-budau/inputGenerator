@@ -1,6 +1,7 @@
 #include <iostream>
 
-#include "../inputGenerator.hpp"
+#define INPUT_GENERATOR_DEBUG
+#include "../src/undirected_graph.hpp"
 
 using namespace std;
 using namespace inputGenerator;
@@ -39,22 +40,17 @@ ostream& operator<<(ostream& cout, const Graph<>& V) {
 }
 
 int main() {
-    // Setting the seed before-hand
-    // This should always generate the same thing
-    Seed::create(1023456789);
-    cout << "Random Chain of length 5 (undirected graph): " << endl;
-    cout << chain(5) << endl;
+    cout << "Random undirected graph with 5 nodes: " << undirectedGraph(5) << endl;
 
-    cout << "Random Path of length 5 (directed graph): " << endl;
-    cout << path(5) << endl;
+    cout << endl;
 
-    // now we seed again, this time completly random
-    // we have to recreate the generator also
-    Seed::create();
-    Generator::create();
+    cout << "Random connected undirected graph with 6 nodes and 10 edges: " << undirectedGraph(6, 10, Boolean::True) << endl;
 
-    auto graph = path(5, Boolean::False);
-    graph.Index({{graph[0], 5}, {graph[4], 6}}, 5);
-    cout << "Random Path of length 5 indexed from 5 to 9 starting from node with index 5 and ending at node with index 6: " << endl;
-    cout << graph << "\n";
+    cout << endl;
+
+    auto graph = undirectedGraph(4, Boolean::True);
+    graph.mergeGraph(undirectedGraph(3, Boolean::True));
+    graph.Index();
+    cout << "Random undirected graph with 2 connected components, one with 4 nodes and the other with 3: " << graph << endl;
 }
+

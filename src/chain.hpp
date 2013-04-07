@@ -11,9 +11,10 @@ namespace inputGenerator {
 // this is undirected
 template<class NodeData = int, class EdgeData = int>
 Graph<NodeData, EdgeData> chain(const int &size = 1, Boolean::Object random = Boolean::True) {
+#ifdef INPUT_GENERATOR_DEBUG
     if (size <= 0)
         throw Exception("Chains must have strictly positive sizes");
-
+#endif
     Graph<NodeData, EdgeData> graph(size);
     for (int i = 1; i < size; ++i) {
         addEdge(graph[i - 1], graph[i]);
@@ -27,9 +28,10 @@ Graph<NodeData, EdgeData> chain(const int &size = 1, Boolean::Object random = Bo
 
 template<class NodeData = int, class EdgeData = int>
 Graph<NodeData, EdgeData> path(const int &size = 1, Boolean::Object random = Boolean::True) {
+#ifdef INPUT_GENERATOR_DEBUG
     if (size <= 0)
         throw Exception("Paths must have strictly positive sizes");
-
+#endif
     Graph<NodeData, EdgeData> graph(size);
     for (int i = 1; i < size; ++i)
         graph[i - 1].addEdge(graph[i]);

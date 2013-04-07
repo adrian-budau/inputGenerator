@@ -89,10 +89,16 @@ class Graph {
     Graph(const int& _size = 1, const int& _indexStart = 0);
 
     // shallow copy
+    Graph(const Graph&) = default;
+
+    // move constructor
+    Graph(Graph&&);
+
+    // shallow copy
     Graph<NodeData, EdgeData>& operator=(const Graph<NodeData, EdgeData> &) = default;
 
-    // shallow copy too
-    Graph(const Graph&) = default;
+    // fast operator= using move semantics
+    Graph<NodeData, EdgeData>& operator=(Graph<NodeData, EdgeData> &&);
 
     // and some deep copy
     Graph<NodeData, EdgeData> clone() const;
@@ -169,6 +175,18 @@ Graph<NodeData, EdgeData>::Graph(const int& _size, const int& _indexStart) {
 
     // make it so it supports both possibilities(nodes from 0 to size - 1 or from 1 to size)
     indexStart = _indexStart;
+}
+
+template<class NodeData, class EdgeData>
+Graph<NodeData, EdgeData>::Graph(Graph<NodeData, EdgeData> &&graph) {
+    std::swap(nodes, graph.nodes);
+    std::swap(indexStart, graph.indexStart);
+}
+
+template<class NodeData, class EdgeData>
+Graph<NodeData, EdgeData>& Graph<NodeData, EdgeData>::operator=(Graph<NodeData, EdgeData> &&graph) {
+    std::swap(nodes, graph.nodes);
+    std::swap(indexStart, graph.indexStart);
 }
 
 template<class NodeData, class EdgeData>
@@ -296,8 +314,17 @@ bool Graph<NodeData, EdgeData>::hasNode(const Node& that) const {
 
 // specialization for shuffle
 template<class NodeData, class EdgeData>
+Graph<NodeData, EdgeData> shuffle(Graph<NodeData, EdgeData> && graph) {
+    auto newGraph(std::move(graph));
+
+    newGraph.Index();
+
+    return newGraph;
+}
+
+template<class NodeData, class EdgeData>
 Graph<NodeData, EdgeData> shuffle(const Graph<NodeData, EdgeData>& graph) {
-    auto newGraph = graph.clone();
+    auto newGraph(std::move(graph.clone()));
 
     newGraph.Index();
 
@@ -305,4 +332,6 @@ Graph<NodeData, EdgeData> shuffle(const Graph<NodeData, EdgeData>& graph) {
 }
 
 }
+
+
 #endif // INPUT_GENERATOR_GRAPH_HPP_

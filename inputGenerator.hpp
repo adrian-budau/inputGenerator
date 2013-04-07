@@ -9,3 +9,4 @@
 #include "src/chain.hpp"
 #include "src/tree.hpp"
 #include "src/bipartite.hpp"
+#include "src/undirected_graph.hpp"

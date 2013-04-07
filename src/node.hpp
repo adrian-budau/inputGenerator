@@ -47,6 +47,8 @@ class _Node {
 
     bool hasEdge(const NodeType&) const;
 
+    bool eraseEdge(const EdgeType&);
+
     std::vector<EdgeType> arcs() const;
 
     std::vector<EdgeType> edges() const;
@@ -67,7 +69,7 @@ class _Node {
     // now for a graph of N nodes and E edges we have at least N * 44 + 2 * E * 20 bytes occupied
     std::unordered_multimap<unsigned, EdgeType> _neighbours;
 
-    std::unordered_multimap<unsigned, EdgeType> _edges;
+    std::unordered_map<unsigned, EdgeType> _edges;
 
     // auto-increment value to assign each _Node object a key
     static unsigned keyCount;
@@ -93,6 +95,24 @@ const unsigned& _Node<NodeData, EdgeData>::getKey() const {
 template<class NodeData, class EdgeData>
 bool _Node<NodeData, EdgeData>::hasEdge(const EdgeType& edge) const {
     return _edges.count(edge.getKey()) > 0;
+}
+
+template<class NodeData, class EdgeData>
+bool _Node<NodeData, EdgeData>::eraseEdge(const EdgeType& edge) {
+    // first let's find it
+    if (hasEdge(edge) == false)
+        return false;
+    auto realEdge = _edges.find(edge.getKey());
+    auto where = _neighbours.equal_range(realEdge->second.to().getKey());
+
+    for (auto it = where.first; it != where.second; ++it)
+        if (it -> second == realEdge -> second) {
+            _neighbours.erase(it);
+            _edges.erase(realEdge);
+            return true;
+        }
+
+    throw new Exception("Edge was in normal list but not in neighbour list");
 }
 
 template<class NodeData, class EdgeData>
@@ -167,11 +187,18 @@ class NodeWrapper {
     typedef _Node<NodeData, EdgeData> NodeType;
     typedef _Edge<NodeData, EdgeData> EdgeType;
 
-    NodeWrapper(const int &index = 0):
-      internalNode(new NodeType(index)) {
+    NodeWrapper() {
+        if (is_const_object_())
+            internalNode.reset(new NodeType(0));
+    }
+
+    NodeWrapper(const int &index):
+        internalNode(new NodeType(index)) {
     }
 
     NodeWrapper(const NodeWrapper<NodeData, EdgeData> &otherNodeWrapper) {
+        if (is_const_object_())
+            otherNodeWrapper.lazyconstruct();
         internalNode = otherNodeWrapper.internalNode;
     }
 
@@ -180,15 +207,24 @@ class NodeWrapper {
     }
 
     NodeWrapper& operator=(const NodeWrapper& otherNodeWrapper) {
+        otherNodeWrapper.lazyconstruct();
         internalNode = otherNodeWrapper.internalNode;
         return *this;
     }
 
+    void lazyconstruct() const {
+        if (!internalNode) // i'm cheating yes, but i know it's not a const object, i made sure
+            const_cast<std::shared_ptr<NodeType>&>(internalNode).reset(new NodeType(0));
+    }
+
     const unsigned& getKey() const {
+        lazyconstruct();
         return internalNode -> getKey();
     }
 
     EdgeType addEdge(const NodeWrapper& otherNodeWrapper, const EdgeData& data = EdgeData()) const {
+        lazyconstruct();
+        otherNodeWrapper.lazyconstruct();
         auto edge = EdgeType(internalNode, otherNodeWrapper.internalNode);
         edge.data() = data;
 
@@ -199,6 +235,8 @@ class NodeWrapper {
     }
 
     EdgeType addEdge(const NodeWrapper& otherNodeWrapper, const EdgeData& data, const unsigned &key) const {
+        lazyconstruct();
+        otherNodeWrapper.lazyconstruct();
         auto edge = EdgeType(internalNode, otherNodeWrapper.internalNode, key);
         edge.data() = data;
 
@@ -209,6 +247,8 @@ class NodeWrapper {
     }
 
     EdgeType addEdge(const NodeWrapper& otherNodeWrapper, const std::shared_ptr<EdgeData>& dataPointer, const unsigned &key) const {
+        lazyconstruct();
+        otherNodeWrapper.lazyconstruct();
         auto edge = EdgeType(internalNode, otherNodeWrapper.internalNode, key, dataPointer);
 
         internalNode -> _neighbours.insert({otherNodeWrapper.getKey(), edge});
@@ -218,11 +258,14 @@ class NodeWrapper {
     }
 
     int& index() const {
+        lazyconstruct();
         return internalNode -> index;
     }
 
     // you can force to find arcs that are not edges(in case you have both)
     std::vector<EdgeType> arcsTo(const NodeWrapper& otherNodeWrapper, const bool& forceSearch = false) const {
+        lazyconstruct();
+        otherNodeWrapper.lazyconstruct();
         if (forceSearch)
             return (internalNode -> arcsTo(*otherNodeWrapper.internalNode));
 
@@ -236,7 +279,10 @@ class NodeWrapper {
 
     // same here
     std::vector<EdgeType> edgesTo(const NodeWrapper& otherNodeWrapper, const bool& forceSearch = false) const {
-        if (forceSearch)
+        lazyconstruct();
+        otherNodeWrapper.lazyconstruct();
+
+       if (forceSearch)
             return (internalNode -> edgesTo(*otherNodeWrapper.internalNode));
 
         auto interval = internalNode->_neighbours.equal_range(otherNodeWrapper.getKey());
@@ -248,18 +294,32 @@ class NodeWrapper {
     }
 
     bool hasArc(const NodeWrapper& otherNodeWrapper, const bool& forceSearch = false) const {
+        lazyconstruct();
+        otherNodeWrapper.lazyconstruct();
+
         if (forceSearch)
             return internalNode -> hasArc(*otherNodeWrapper.internalNode);
         return internalNode->_neighbours.count(otherNodeWrapper.getKey()) > 0;
     }
 
     bool hasEdge(const NodeWrapper& otherNodeWrapper, const bool& forceSearch = false) const {
+        lazyconstruct();
+        otherNodeWrapper.lazyconstruct();
+
         if (forceSearch)
             return internalNode -> hasEdge(*otherNodeWrapper.internalNode);
         return internalNode->_neighbours.count(otherNodeWrapper.getKey()) > 0;
     }
 
+    bool eraseEdge(const EdgeType& edge) const {
+        lazyconstruct();
+
+        return internalNode -> eraseEdge(edge);
+    }
+
     std::vector<EdgeType> arcs(const bool& forceSearch = false) const {
+        lazyconstruct();
+
         if (forceSearch)
             return internalNode -> arcs();
 
@@ -270,6 +330,8 @@ class NodeWrapper {
     }
 
     std::vector<EdgeType> edges(const bool& forceSearch = false) const {
+        lazyconstruct();
+
         if (forceSearch)
             return internalNode -> edges();
 
@@ -281,10 +343,14 @@ class NodeWrapper {
 
 
     NodeData& data() const {
+        lazyconstruct();
+
         return internalNode -> data;
     }
 
     void clear() const {
+        lazyconstruct();
+
         internalNode -> clear();
     }
 
@@ -293,8 +359,19 @@ class NodeWrapper {
     }
 
   private:
+    bool is_const_object_() {
+        return false;
+    }
+
+    bool is_const_object_() const {
+        return true;
+    }
+
     std::shared_ptr<NodeType> internalNode;
 };
+
+template<class NodeData = int, class EdgeData = int>
+using Node = NodeWrapper<NodeData, EdgeData>;
 
 }
 

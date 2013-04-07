@@ -25,8 +25,7 @@ Graph<NodeData, EdgeData> tree(const size_t &size = 1) {
         graph.addNodes({node});
     }
 
-    graph = shuffle(graph);
-
+    graph.Index();
     return graph;
 }
 
