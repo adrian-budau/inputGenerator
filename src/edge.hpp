@@ -27,7 +27,8 @@ class _Edge {
 
     _Edge(const std::shared_ptr<NodeType>&, const std::shared_ptr<NodeType>&);
 
-    _Edge(const std::shared_ptr<NodeType>&, const std::shared_ptr<NodeType>&, const int&, const std::shared_ptr<EdgeData>& data = new EdgeData);
+    _Edge(const std::shared_ptr<NodeType>&, const std::shared_ptr<NodeType>&,
+          const int&, const std::shared_ptr<EdgeData>& data = new EdgeData);
 
     const unsigned& getKey() const;
 
@@ -46,7 +47,8 @@ class _Edge {
 
     std::weak_ptr<NodeType> _from, _to;
 
-    // auto-increment value to assign each each a key so edge from x to y should match edge to y to x
+    // auto-increment value to assign each each a key
+    // so edge from x to y should match edge to y to x
     static unsigned keyCount;
 
     // the key itself
@@ -68,7 +70,8 @@ _Edge<NodeData, EdgeData>::_Edge(const _Edge<NodeData, EdgeData>& that) {
 }
 
 template<class NodeData, class EdgeData>
-_Edge<NodeData, EdgeData>::_Edge(const std::shared_ptr<NodeType>& from, const std::shared_ptr<NodeType>& to) {
+_Edge<NodeData, EdgeData>::_Edge(const std::shared_ptr<NodeType>& from,
+                                 const std::shared_ptr<NodeType>& to) {
     _from = from;
     _to = to;
     key = keyCount++;
@@ -77,7 +80,10 @@ _Edge<NodeData, EdgeData>::_Edge(const std::shared_ptr<NodeType>& from, const st
 }
 
 template<class NodeData, class EdgeData>
-_Edge<NodeData, EdgeData>::_Edge(const std::shared_ptr<NodeType>& from, const std::shared_ptr<NodeType>& to, const int &_key, const std::shared_ptr<EdgeData>& data) {
+_Edge<NodeData, EdgeData>::_Edge(const std::shared_ptr<NodeType>& from,
+                                 const std::shared_ptr<NodeType>& to,
+                                 const int &_key,
+                                 const std::shared_ptr<EdgeData>& data) {
     _from = from;
     _to = to;
     key = _key;
@@ -92,12 +98,12 @@ const unsigned& _Edge<NodeData, EdgeData>::getKey() const {
 
 template<class NodeData, class EdgeData>
 NodeWrapper<NodeData, EdgeData> _Edge<NodeData, EdgeData>::from() const {
-    return _from.lock();
+    return NodeWrapper<NodeData, EdgeData>(_from.lock());
 }
 
 template<class NodeData, class EdgeData>
 NodeWrapper<NodeData, EdgeData> _Edge<NodeData, EdgeData>::to() const {
-    return _to.lock();
+    return NodeWrapper<NodeData, EdgeData>(_to.lock());
 }
 
 template<class NodeData, class EdgeData>
@@ -111,7 +117,9 @@ std::shared_ptr<EdgeData> _Edge<NodeData, EdgeData>::dataPointer() const {
 }
 
 template<class NodeData, class EdgeData>
-_Edge<NodeData, EdgeData> addEdge(const NodeWrapper<NodeData, EdgeData> &from, const NodeWrapper<NodeData, EdgeData> &to, const EdgeData& data = EdgeData()) {
+_Edge<NodeData, EdgeData> addEdge(const NodeWrapper<NodeData, EdgeData> &from,
+                                  const NodeWrapper<NodeData, EdgeData> &to,
+                                  const EdgeData& data = EdgeData()) {
     auto edge = from.addEdge(to, data);
     to.addEdge(from, edge.dataPointer(), edge.getKey());
     return edge;
@@ -119,43 +127,17 @@ _Edge<NodeData, EdgeData> addEdge(const NodeWrapper<NodeData, EdgeData> &from, c
 
 template<class NodeData, class EdgeData>
 bool eraseEdge(const _Edge<NodeData, EdgeData> &edge) {
-    //edge lives in from so let's delete from the other end first
+    // edge lives in `from` so let's delete from the other end first
     edge.to().eraseEdge(edge);
     return edge.from().eraseEdge(edge);
 }
 
 template<class NodeData, class EdgeData>
-bool _Edge<NodeData, EdgeData>::operator==(const _Edge<NodeData, EdgeData> &edge) const {
+bool _Edge<NodeData, EdgeData>::operator==(
+        const _Edge<NodeData, EdgeData> &edge) const {
     return getKey() == edge.getKey();
 }
 
-/*
-template<class NodeData, class EdgeData>
-class EdgeWrapper {
-  public:
-    typedef _Edge<NodeData, EdgeData> EdgeType;
+}  // namespace inputGenerator
 
-    EdgeWrapper(const EdgeWrapper<NodeData, EdgeData> &otherEdgeWrapper) {
-        internalEdge = otherEdgeWrapper.internalEdge;
-    }
-
-    EdgeWrapper(EdgeType* otherEdge): internalEdge(otherEdge) {
-    }
-
-    EdgeWrapper(EdgeTyp
-    NodeWrapper<NodeData, EdgeData> from() {
-        return NodeWrapper<NodeData, EdgeData>(internalEdge -> from);
-    }
-
-    NodeWrapper<NodeData, EdgeData> to() {
-        return NodeWrapper<NodeData, EdgeData>(internalEdge -> to);
-    }
-
-  private:
-    std::shared_ptr<EdgeType> internalEdge;
-};
-*/
-
-}
-
-#endif // INPUT_GENERATOR_EDGE_HPP_
+#endif  // INPUT_GENERATOR_EDGE_HPP_

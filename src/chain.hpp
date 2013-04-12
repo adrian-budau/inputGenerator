@@ -7,10 +7,12 @@
 
 namespace inputGenerator {
 
-// you can generate a non-random graph if you really want by making the second parameter false
+// you can generate a non-random graph if you really want
+// by making the second parameter false
 // this is undirected
 template<class NodeData = int, class EdgeData = int>
-Graph<NodeData, EdgeData> chain(const int &size = 1, Boolean::Object random = Boolean::True) {
+Graph<NodeData, EdgeData> chain(const int &size = 1,
+                                Boolean::Object random = Boolean::True) {
 #ifdef INPUT_GENERATOR_DEBUG
     if (size <= 0)
         throw Exception("Chains must have strictly positive sizes");
@@ -27,7 +29,8 @@ Graph<NodeData, EdgeData> chain(const int &size = 1, Boolean::Object random = Bo
 }
 
 template<class NodeData = int, class EdgeData = int>
-Graph<NodeData, EdgeData> path(const int &size = 1, Boolean::Object random = Boolean::True) {
+Graph<NodeData, EdgeData> path(const int &size = 1,
+                               Boolean::Object random = Boolean::True) {
 #ifdef INPUT_GENERATOR_DEBUG
     if (size <= 0)
         throw Exception("Paths must have strictly positive sizes");
@@ -42,7 +45,7 @@ Graph<NodeData, EdgeData> path(const int &size = 1, Boolean::Object random = Boo
     return graph;
 }
 
-}
+}  // namespace inputGenerator
 
-#endif // INPUT_GENERATOR_CHAIN_HPP_
+#endif  // INPUT_GENERATOR_CHAIN_HPP_
 

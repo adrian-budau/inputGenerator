@@ -1,9 +1,9 @@
 #ifndef INPUT_GENERATOR_GRAPH_HPP_
 #define INPUT_GENERATOR_GRAPH_HPP_
 
+#include <unordered_set>
 #include <vector>
 #include <utility>
-#include <unordered_set>
 #include <algorithm>
 
 #include "exception.hpp"
@@ -75,7 +75,7 @@ class Graph {
       private:
         friend class Graph<NodeData, EdgeData>;
 
-        Iterator(const VectorIteratorType &that) {
+        explicit Iterator(const VectorIteratorType &that) {
             alpha = that;
         }
 
@@ -95,7 +95,8 @@ class Graph {
     Graph(Graph&&);
 
     // shallow copy
-    Graph<NodeData, EdgeData>& operator=(const Graph<NodeData, EdgeData> &) = default;
+    Graph<NodeData, EdgeData>& operator=(
+            const Graph<NodeData, EdgeData> &) = default;
 
     // fast operator= using move semantics
     Graph<NodeData, EdgeData>& operator=(Graph<NodeData, EdgeData> &&);
@@ -105,7 +106,8 @@ class Graph {
 
     void clear();
 
-    void Index(std::initializer_list< std::pair<Node, int> > fixed, const int &from = 0);
+    void Index(std::initializer_list< std::pair<Node, int> > fixed,
+               const int &from = 0);
 
     void Index(const int &from = 0);
 
@@ -173,7 +175,8 @@ Graph<NodeData, EdgeData>::Graph(const int& _size, const int& _indexStart) {
     for (int i = 0; i < _size; ++i)
         nodes.push_back(Node(i));
 
-    // make it so it supports both possibilities(nodes from 0 to size - 1 or from 1 to size)
+    // make it so it supports both possibilities
+    // nodes from 0 to size - 1 or from 1 to size or etc
     indexStart = _indexStart;
 }
 
@@ -184,7 +187,8 @@ Graph<NodeData, EdgeData>::Graph(Graph<NodeData, EdgeData> &&graph) {
 }
 
 template<class NodeData, class EdgeData>
-Graph<NodeData, EdgeData>& Graph<NodeData, EdgeData>::operator=(Graph<NodeData, EdgeData> &&graph) {
+Graph<NodeData, EdgeData>& Graph<NodeData, EdgeData>::operator=(
+        Graph<NodeData, EdgeData> &&graph) {
     std::swap(nodes, graph.nodes);
     std::swap(indexStart, graph.indexStart);
 }
@@ -193,12 +197,15 @@ template<class NodeData, class EdgeData>
 Graph<NodeData, EdgeData> Graph<NodeData, EdgeData>::clone() const {
     Graph<NodeData, EdgeData> newGraph(size(), indexStart);
 
-    for (auto &arc: arcs(true)) {
-        newGraph[arc.from().index()].addEdge(newGraph[arc.to().index()], arc.data());
+    for (auto &arc : arcs(true)) {
+        newGraph[arc.from().index()].addEdge(newGraph[arc.to().index()],
+                                             arc.data());
     }
 
-    for (auto &edge: edges(true))
-        auto edge2 = addEdge(newGraph[edge.from().index()], newGraph[edge.to().index()], edge.data());
+    for (auto &edge : edges(true))
+        auto edge2 = addEdge(newGraph[edge.from().index()],
+                             newGraph[edge.to().index()],
+                             edge.data());
 
     return newGraph;
 }
@@ -209,24 +216,32 @@ void Graph<NodeData, EdgeData>::clear() {
 }
 
 template<class NodeData, class EdgeData>
-void Graph<NodeData, EdgeData>::Index(std::initializer_list< std::pair<Node, int> > fixed, const int &from) {
+void Graph<NodeData, EdgeData>::Index(
+        std::initializer_list< std::pair<Node, int> > fixed,
+        const int &from) {
     // we go through each fixed node and keep track of it
     std::unordered_set<unsigned> fixedNodes;
     // we also keep track of the values we have so we can assign demn easily
     std::unordered_set<int> usedValues;
-    for (auto &node: fixed) {
-        if (node.second < from || node.second >= from + int(nodes.size()))
-            throw Exception("On Graph Reindexing nodes must be reindexed using only values between `from` and `from` + the_number_of_nodes - 1");
+    for (auto &node : fixed) {
+        if (node.second < from ||
+            node.second >= from + static_cast<int>(nodes.size()))
+            throw Exception("On Graph Reindexing nodes must be reindexed using "
+                            "only values between `from` and `from` + the_number"
+                            "_of_nodes - 1");
 
         // why would you give a node twice?
-        // anyway we ignore following attempts, it's your duty to not have multiple such actions
+        // anyway we ignore following attempts
+        // it's your duty to not have multiple such actions
         if (fixedNodes.find(node.first.getKey()) != fixedNodes.end())
-            throw Exception("On Graph Reindexing no node is allowed to appear twice");
+            throw Exception("On Graph Reindexing no node is allowed to appear "
+                            "twice");
 
         // and why would you reuse values?
         // again we ignore such attempts
         if (usedValues.find(node.second) != usedValues.end())
-            throw Exception("On Graph Reindexing no two nodes are allowed to have the same index");
+            throw Exception("On Graph Reindexing no two nodes are allowed to ha"
+                            "ve the same index");
 
         node.first.index() = node.second;
         fixedNodes.insert(node.first.getKey());
@@ -235,12 +250,12 @@ void Graph<NodeData, EdgeData>::Index(std::initializer_list< std::pair<Node, int
 
     std::vector<int> unusedValues;
     unusedValues.reserve(nodes.size() - usedValues.size());
-    for (int i = from; i < from + int(nodes.size()); ++i)
+    for (int i = from; i < from + static_cast<int>(nodes.size()); ++i)
         if (usedValues.find(i) == usedValues.end())
             unusedValues.push_back(i);
     unusedValues = shuffle(unusedValues);
 
-    for (auto &node: nodes) {
+    for (auto &node : nodes) {
         if (fixedNodes.find(node.getKey()) != fixedNodes.end())
             continue;
 
@@ -264,21 +279,23 @@ void Graph<NodeData, EdgeData>::Index(const int &from) {
 template<class NodeData, class EdgeData>
 void Graph<NodeData, EdgeData>::addNodes(std::initializer_list<Node> newNodes) {
     int newIndex = indexStart + nodes.size();
-    for (auto &node: newNodes)
+    for (auto &node : newNodes)
         node.index() = newIndex++;
     nodes.insert(nodes.end(), newNodes.begin(), newNodes.end());
 }
 
 template<class NodeData, class EdgeData>
-void Graph<NodeData, EdgeData>::mergeGraph(const Graph<NodeData, EdgeData> &that) {
-    for (auto &node: that)
+void Graph<NodeData, EdgeData>::mergeGraph(
+        const Graph<NodeData, EdgeData> &that) {
+    for (auto &node : that)
         addNodes({node});
 }
 
 template<class NodeData, class EdgeData>
-std::vector<_Edge<NodeData, EdgeData>> Graph<NodeData, EdgeData>::arcs(const bool& forceSearch) const {
+std::vector<_Edge<NodeData, EdgeData>> Graph<NodeData, EdgeData>::arcs(
+        const bool& forceSearch) const {
     std::vector<_Edge<NodeData, EdgeData>> result;
-    for (auto &node: nodes) {
+    for (auto &node : nodes) {
         auto toAdd = node.arcs(forceSearch);
 
         result.insert(result.end(), toAdd.begin(), toAdd.end());
@@ -287,18 +304,19 @@ std::vector<_Edge<NodeData, EdgeData>> Graph<NodeData, EdgeData>::arcs(const boo
 }
 
 template<class NodeData, class EdgeData>
-std::vector<_Edge<NodeData, EdgeData>> Graph<NodeData, EdgeData>::edges(const bool& forceSearch) const {
+std::vector<_Edge<NodeData, EdgeData>> Graph<NodeData, EdgeData>::edges(
+        const bool& forceSearch) const {
     std::vector<_Edge<NodeData, EdgeData>> result;
-    for (auto &node: nodes) {
+    for (auto &node : nodes) {
         auto toAdd = node.edges(forceSearch);
 
-        for (auto &edge: toAdd)
+        for (auto &edge : toAdd)
             if (hasNode(edge.to())) {
                 if (edge.from().index() < edge.to().index())
                     result.push_back(edge);
-            } else
+            } else {
                 result.push_back(edge);
-
+            }
     }
 
     return result;
@@ -306,7 +324,8 @@ std::vector<_Edge<NodeData, EdgeData>> Graph<NodeData, EdgeData>::edges(const bo
 
 template<class NodeData, class EdgeData>
 bool Graph<NodeData, EdgeData>::hasNode(const Node& that) const {
-    if (that.index() < indexStart || that.index() >= indexStart + int(nodes.size()))
+    if (that.index() < indexStart ||
+        that.index() >= indexStart + static_cast<int>(nodes.size()))
         return false;
 
     return (*this)[that.index()] == that;
@@ -331,7 +350,7 @@ Graph<NodeData, EdgeData> shuffle(const Graph<NodeData, EdgeData>& graph) {
     return newGraph;
 }
 
-}
+}  // namespace inputGenerator
 
 
-#endif // INPUT_GENERATOR_GRAPH_HPP_
+#endif  // INPUT_GENERATOR_GRAPH_HPP_

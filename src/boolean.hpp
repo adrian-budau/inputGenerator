@@ -18,7 +18,7 @@ class Boolean {
         friend class Boolean;
 
       private:
-        Object(const bool &value = false):
+        explicit Object(const bool &value = false):
             data_(value) {
         }
 
@@ -32,6 +32,6 @@ class Boolean {
 const Boolean::Object Boolean::True = Object(true);
 const Boolean::Object Boolean::False  = Object(false);
 
-}
+}  // namespace inputGenerator
 
-#endif // INPUT_GENERATOR_BOOLEAN_HPP_
+#endif  // INPUT_GENERATOR_BOOLEAN_HPP_

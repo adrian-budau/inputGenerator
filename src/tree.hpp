@@ -9,7 +9,7 @@
 
 namespace inputGenerator {
 
-// TODO: use pruffer sequences
+// TODO(adrian_budau): use pruffer sequences
 template<class NodeData = int, class EdgeData = int>
 Graph<NodeData, EdgeData> tree(const size_t &size = 1) {
 #ifdef INPUT_GENERATOR_DEBUG
@@ -30,7 +30,9 @@ Graph<NodeData, EdgeData> tree(const size_t &size = 1) {
 }
 
 template<class NodeData = int, class EdgeData = int>
-Graph<NodeData, EdgeData> wideTree(const size_t &size, const size_t &minimumDiameter, Boolean::Object randomEnds = Boolean::True) {
+Graph<NodeData, EdgeData> wideTree(const size_t &size,
+                                   const size_t &minimumDiameter,
+                                   Boolean::Object randomEnds = Boolean::True) {
 #ifdef INPUT_GENERATOR_DEBUG
     if (size < 2)
         throw Exception("Wide trees must have at least two nodes");
@@ -42,7 +44,8 @@ Graph<NodeData, EdgeData> wideTree(const size_t &size, const size_t &minimumDiam
         throw Exception("Diameter must be strictly less than the tree size");
 #endif
     Graph<NodeData, EdgeData> graph = chain(minimumDiameter, randomEnds);
-    typename Graph<NodeData, EdgeData>::Node start = graph[0], end = graph[minimumDiameter - 1];
+    typename Graph<NodeData, EdgeData>::Node start = graph[0],
+                                             end = graph[minimumDiameter - 1];
 
     for (size_t i = minimumDiameter; i < size; ++i) {
         typename Graph<NodeData, EdgeData>::Node node;
@@ -59,6 +62,6 @@ Graph<NodeData, EdgeData> wideTree(const size_t &size, const size_t &minimumDiam
     return graph;
 }
 
-}
+}  // namespace inputGenerator
 
-#endif // INPUT_GENERATOR_HPP_
+#endif  // INPUT_GENERATOR_HPP_

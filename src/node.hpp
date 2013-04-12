@@ -1,9 +1,9 @@
-#if !defined(INPUT_GENERATOR_NODE_HPP_)
+#ifndef INPUT_GENERATOR_NODE_HPP_
 #define INPUT_GENERATOR_NODE_HPP_
 
-#include <vector>
 #include <unordered_map>
 #include <memory>
+#include <vector>
 
 namespace inputGenerator {
 
@@ -27,7 +27,7 @@ class _Node {
     typedef _Node<NodeData, EdgeData> NodeType;
     typedef _Edge<NodeData, EdgeData> EdgeType;
 
-    _Node(const int &_index = 0);
+    explicit _Node(const int &_index = 0);
 
     const unsigned& getKey() const;
 
@@ -66,7 +66,8 @@ class _Node {
 
     // damn that's a lot, lot of memory, we're lucky we don't copy the data
     // well it's only 4 bytes anyway so that's not much of an improvement
-    // now for a graph of N nodes and E edges we have at least N * 44 + 2 * E * 20 bytes occupied
+    // now for a graph of N nodes and E edges we have at least
+    // N * 44 + 2 * E * 20 bytes occupied
     std::unordered_multimap<unsigned, EdgeType> _neighbours;
 
     std::unordered_map<unsigned, EdgeType> _edges;
@@ -116,7 +117,8 @@ bool _Node<NodeData, EdgeData>::eraseEdge(const EdgeType& edge) {
 }
 
 template<class NodeData, class EdgeData>
-std::vector<_Edge<NodeData, EdgeData>> _Node<NodeData, EdgeData>::arcsTo(const NodeType& otherNode) const {
+std::vector<_Edge<NodeData, EdgeData>> _Node<NodeData, EdgeData>::arcsTo(
+        const NodeType& otherNode) const {
     std::vector<EdgeType> result;
 
     auto range = _neighbours.equal_range(otherNode.getKey());
@@ -127,7 +129,8 @@ std::vector<_Edge<NodeData, EdgeData>> _Node<NodeData, EdgeData>::arcsTo(const N
 }
 
 template<class NodeData, class EdgeData>
-std::vector<_Edge<NodeData, EdgeData>> _Node<NodeData, EdgeData>::edgesTo(const NodeType& otherNode) const {
+std::vector<_Edge<NodeData, EdgeData>> _Node<NodeData, EdgeData>::edgesTo(
+        const NodeType& otherNode) const {
     std::vector<EdgeType> result;
 
     auto range = _neighbours.equal_range(otherNode.getKey());
@@ -150,7 +153,7 @@ template<class NodeData, class EdgeData>
 bool _Node<NodeData, EdgeData>::hasEdge(const NodeType& otherNode) const {
     auto range = _neighbours.equal_range(otherNode.getKey());
     for (auto it = range.first; it != range.second; ++it)
-        if (otherNode.hasEdge(it->second.getKey()))
+        if (otherNode.hasEdge(it->second))
             return true;
     return false;
 }
@@ -158,16 +161,17 @@ bool _Node<NodeData, EdgeData>::hasEdge(const NodeType& otherNode) const {
 template<class NodeData, class EdgeData>
 std::vector<_Edge<NodeData, EdgeData>> _Node<NodeData, EdgeData>::arcs() const {
     std::vector<EdgeType> result;
-    for (auto &arc: _edges)
+    for (auto &arc : _edges)
         if (!arc.second._to.lock()->hasEdge(arc.second))
             result.push_back(arc.second);
     return result;
 }
 
 template<class NodeData, class EdgeData>
-std::vector<_Edge<NodeData, EdgeData>> _Node<NodeData, EdgeData>::edges() const {
+std::vector<_Edge<NodeData, EdgeData>> _Node<NodeData, EdgeData>
+::edges() const {
     std::vector<EdgeType> result;
-    for (auto &edge: _edges)
+    for (auto &edge : _edges)
         if (edge.second._to.lock()->hasEdge(edge.second))
             result.push_back(edge.second);
     return result;
@@ -180,7 +184,7 @@ void _Node<NodeData, EdgeData>::clear() {
 }
 
 // the problem with nodes is the fact they can't be copied
-/// this is a wrapper to allow such copying without having to deal with pointers
+// this is a wrapper to allow such copying without having to deal with pointers
 template<class NodeData, class EdgeData>
 class NodeWrapper {
   public:
@@ -192,19 +196,21 @@ class NodeWrapper {
             internalNode.reset(new NodeType(0));
     }
 
-    NodeWrapper(const int &index):
-        internalNode(new NodeType(index)) {
-    }
-
-    NodeWrapper(const NodeWrapper<NodeData, EdgeData> &otherNodeWrapper) {
+    NodeWrapper(
+            const NodeWrapper<NodeData, EdgeData> &otherNodeWrapper) {
         if (is_const_object_())
             otherNodeWrapper.lazyconstruct();
         internalNode = otherNodeWrapper.internalNode;
     }
 
-    NodeWrapper(const std::shared_ptr<NodeType> &otherNode) {
+    explicit NodeWrapper(const std::shared_ptr<NodeType> &otherNode) {
         internalNode = otherNode;
     }
+
+    explicit NodeWrapper(const int &index):
+        internalNode(new NodeType(index)) {
+    }
+
 
     NodeWrapper& operator=(const NodeWrapper& otherNodeWrapper) {
         otherNodeWrapper.lazyconstruct();
@@ -213,8 +219,10 @@ class NodeWrapper {
     }
 
     void lazyconstruct() const {
-        if (!internalNode) // i'm cheating yes, but i know it's not a const object, i made sure
-            const_cast<std::shared_ptr<NodeType>&>(internalNode).reset(new NodeType(0));
+        if (!internalNode)  // i'm cheating yes, but i know
+                            // it's not a const object, i made sure
+            const_cast<std::shared_ptr<NodeType>&>(internalNode).reset(
+                    new NodeType(0));
     }
 
     const unsigned& getKey() const {
@@ -222,7 +230,8 @@ class NodeWrapper {
         return internalNode -> getKey();
     }
 
-    EdgeType addEdge(const NodeWrapper& otherNodeWrapper, const EdgeData& data = EdgeData()) const {
+    EdgeType addEdge(const NodeWrapper& otherNodeWrapper,
+                     const EdgeData& data = EdgeData()) const {
         lazyconstruct();
         otherNodeWrapper.lazyconstruct();
         auto edge = EdgeType(internalNode, otherNodeWrapper.internalNode);
@@ -234,7 +243,8 @@ class NodeWrapper {
         return edge;
     }
 
-    EdgeType addEdge(const NodeWrapper& otherNodeWrapper, const EdgeData& data, const unsigned &key) const {
+    EdgeType addEdge(const NodeWrapper& otherNodeWrapper,
+                     const EdgeData& data, const unsigned &key) const {
         lazyconstruct();
         otherNodeWrapper.lazyconstruct();
         auto edge = EdgeType(internalNode, otherNodeWrapper.internalNode, key);
@@ -246,10 +256,15 @@ class NodeWrapper {
         return edge;
     }
 
-    EdgeType addEdge(const NodeWrapper& otherNodeWrapper, const std::shared_ptr<EdgeData>& dataPointer, const unsigned &key) const {
+    EdgeType addEdge(const NodeWrapper& otherNodeWrapper,
+                     const std::shared_ptr<EdgeData>& dataPointer,
+                     const unsigned &key) const {
         lazyconstruct();
         otherNodeWrapper.lazyconstruct();
-        auto edge = EdgeType(internalNode, otherNodeWrapper.internalNode, key, dataPointer);
+        auto edge = EdgeType(internalNode,
+                             otherNodeWrapper.internalNode,
+                             key,
+                             dataPointer);
 
         internalNode -> _neighbours.insert({otherNodeWrapper.getKey(), edge});
         internalNode -> _edges.insert({edge.getKey(), edge});
@@ -263,13 +278,15 @@ class NodeWrapper {
     }
 
     // you can force to find arcs that are not edges(in case you have both)
-    std::vector<EdgeType> arcsTo(const NodeWrapper& otherNodeWrapper, const bool& forceSearch = false) const {
+    std::vector<EdgeType> arcsTo(const NodeWrapper& otherNodeWrapper,
+                                 const bool& forceSearch = false) const {
         lazyconstruct();
         otherNodeWrapper.lazyconstruct();
         if (forceSearch)
             return (internalNode -> arcsTo(*otherNodeWrapper.internalNode));
 
-        auto interval = internalNode->_neighbours.equal_range(otherNodeWrapper.getKey());
+        auto interval = internalNode->_neighbours.equal_range(
+                                otherNodeWrapper.getKey());
 
         std::vector<EdgeType> result;
         for (auto &it = interval.first; it != interval.second; ++it)
@@ -278,14 +295,16 @@ class NodeWrapper {
     }
 
     // same here
-    std::vector<EdgeType> edgesTo(const NodeWrapper& otherNodeWrapper, const bool& forceSearch = false) const {
+    std::vector<EdgeType> edgesTo(const NodeWrapper& otherNodeWrapper,
+                                  const bool& forceSearch = false) const {
         lazyconstruct();
         otherNodeWrapper.lazyconstruct();
 
        if (forceSearch)
             return (internalNode -> edgesTo(*otherNodeWrapper.internalNode));
 
-        auto interval = internalNode->_neighbours.equal_range(otherNodeWrapper.getKey());
+        auto interval = internalNode->_neighbours.equal_range(
+                                otherNodeWrapper.getKey());
 
         std::vector<EdgeType> result;
         for (auto &it = interval.first; it != interval.second; ++it)
@@ -293,7 +312,8 @@ class NodeWrapper {
         return result;
     }
 
-    bool hasArc(const NodeWrapper& otherNodeWrapper, const bool& forceSearch = false) const {
+    bool hasArc(const NodeWrapper& otherNodeWrapper,
+                const bool& forceSearch = false) const {
         lazyconstruct();
         otherNodeWrapper.lazyconstruct();
 
@@ -302,7 +322,8 @@ class NodeWrapper {
         return internalNode->_neighbours.count(otherNodeWrapper.getKey()) > 0;
     }
 
-    bool hasEdge(const NodeWrapper& otherNodeWrapper, const bool& forceSearch = false) const {
+    bool hasEdge(const NodeWrapper& otherNodeWrapper,
+                 const bool& forceSearch = false) const {
         lazyconstruct();
         otherNodeWrapper.lazyconstruct();
 
@@ -324,7 +345,7 @@ class NodeWrapper {
             return internalNode -> arcs();
 
         std::vector<EdgeType> result;
-        for (auto &arc: internalNode -> _neighbours)
+        for (auto &arc : internalNode -> _neighbours)
             result.push_back(arc.second);
         return result;
     }
@@ -336,7 +357,7 @@ class NodeWrapper {
             return internalNode -> edges();
 
         std::vector<EdgeType> result;
-        for (auto &edge: internalNode -> _neighbours)
+        for (auto &edge : internalNode -> _neighbours)
             result.push_back(edge.second);
         return result;
     }
@@ -370,7 +391,8 @@ class NodeWrapper {
     std::shared_ptr<NodeType> internalNode;
 };
 
-#define GCC_VERSION (__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__)
+#define GCC_VERSION (__GNUC__ * 10000 + \
+        __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__)
 
 #if GCC_VERSION >= 40700
 template<class NodeData = int, class EdgeData = int>
@@ -378,6 +400,6 @@ using Node = NodeWrapper<NodeData, EdgeData>;
 #endif
 #undef GCC_VERSION
 
-}
+}  // namespace inputGenerator
 
-#endif // INPUT_GENERATOR_NODE_HPP_
+#endif  // INPUT_GENERATOR_NODE_HPP_

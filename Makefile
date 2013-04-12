@@ -29,6 +29,9 @@ clean-verbose:
 	@rm -rfv tmp
 	@echo "Clean OK"
 
+lint:
+	find . -name "*.hpp" | xargs python2 cpplint.py --filter=-legal --counting=detailed
+
 benchmark:
 
 .cpp.o:

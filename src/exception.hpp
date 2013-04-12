@@ -8,15 +8,15 @@ namespace inputGenerator {
 
 class Exception: public std::exception {
   public:
-    Exception(const char *message): message_(message) {}
+    explicit Exception(const char *message): message_(message) {}
     virtual const char* what() const throw() {
         return message_;
     }
 
-    virtual ~Exception() throw() {};
+    virtual ~Exception() throw() {}
     const char * message_;
 };
 
-}
+}  // namespace inputGenerator
 
-#endif // INPUT_GENERATOR_EXCEPTION_HPP_
+#endif  // INPUT_GENERATOR_EXCEPTION_HPP_

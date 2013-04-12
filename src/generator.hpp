@@ -55,6 +55,6 @@ void reSeed(Seed::data_type seed) {
     Generator::create();
 }
 
-}
+}  // namespace inputGenerator
 
-#endif // INPUT_GENERATOR_GENERATOR_HPP_
+#endif  // INPUT_GENERATOR_GENERATOR_HPP_

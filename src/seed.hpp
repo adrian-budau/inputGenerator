@@ -2,7 +2,7 @@
 #define INPUT_GENERATOR_SEED_HPP_
 
 #include <random>
-#include <iostream>
+#include <iostream>  // NOLINT(readability/streams)
 
 namespace inputGenerator {
 
@@ -19,7 +19,8 @@ class Seed {
 
     static void log();
 
-    // logging, useful to recreate tests, set it to true and we can see the seed generated
+    // logging, useful to recreate tests
+    // set it to true and we can see the seed generated
     static bool logging;
 
   private:
@@ -33,7 +34,8 @@ class Seed {
     static data_type seed;
 
     // wheather we created the seed or not
-    // Useful for writing less code, if we need the seed and did not create it we create it now
+    // Useful for writing less code
+    // if we need the seed and did not create it we create it now
     static bool created;
 };
 
@@ -71,10 +73,10 @@ Seed::data_type Seed::getSeed() {
 
 void Seed::log() {
     if (logging) {
-        std::cerr << "Seed generated: " << seed << std::endl;
+        std::clog << "Seed generated: " << seed << std::endl;
     }
 }
 
-}
+}  // namespace inputGenerator
 
-#endif // INPUT_GENERATOR_SEED_HPP_
+#endif  // INPUT_GENERATOR_SEED_HPP_
