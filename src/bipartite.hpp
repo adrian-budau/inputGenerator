@@ -18,6 +18,7 @@ std::pair<Graph<NodeData, EdgeData>, Graph<NodeData, EdgeData>> bipartite(
         const int &rightSize,
         const int &edges,
         const bool &multipleEdges = false) {
+#ifdef INPUT_GENERATOR_DEBUG
     if (leftSize < 1)
         throw Exception("`leftSize` should be strictly positive");
     if (rightSize < 1)
@@ -30,7 +31,7 @@ std::pair<Graph<NodeData, EdgeData>, Graph<NodeData, EdgeData>> bipartite(
         throw Exception("If multiple edges are not accepted then the number of"
                         " edges should be strictly smaller than the product of"
                        " the number of nodes on the left and right size");
-
+#endif
     Graph<NodeData, EdgeData> leftGraph(leftSize);
     Graph<NodeData, EdgeData> rightGraph(rightSize);
 
@@ -70,9 +71,10 @@ template<class NodeData = int, class EdgeData = int>
 std::pair<Graph<NodeData, EdgeData>, Graph<NodeData, EdgeData>> bipartite(
         const int &nodes,
         const bool& multipleEdges = false) {
+#ifdef INPUT_GENERATOR_DEBUG
     if (nodes < 1)
         throw Exception("`nodes` must be be bigger than or equal to 2");
-
+#endif
     auto parts = randomPartition(nodes, 2);
     return bipartite<NodeData, EdgeData>(parts[0], parts[1], multipleEdges);
 }

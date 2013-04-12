@@ -113,7 +113,7 @@ bool _Node<NodeData, EdgeData>::eraseEdge(const EdgeType& edge) {
             return true;
         }
 
-    throw new Exception("Edge was in normal list but not in neighbour list");
+    throw Exception("Edge was in normal list but not in neighbour list");
 }
 
 template<class NodeData, class EdgeData>

@@ -33,8 +33,10 @@ lint:
 	find . -name "*.hpp" | xargs python2 cpplint.py --filter=-legal --counting=detailed
 
 benchmark:
+	$(CXX) $(CFLAGS) examples/benchmark.cpp -o examples/benchmark $(LDFLAGS)
+	./examples/benchmark
 
 .cpp.o:
 	$(CXX) $(CFLAGS) $< -o $@ $(LDFLAGS)
 
-test: $(OBJECTS)
+test: $(OBJECTS) benchmark

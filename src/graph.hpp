@@ -132,15 +132,18 @@ class Graph {
     }
 
     Node& operator[](const int &position) {
+#ifdef INPUT_GENERATOR_DEBUG
         if (position < indexStart || position >= indexStart + size())
             throw Exception("index out of range in the graph");
-
+#endif
         return nodes[position - indexStart];
     }
 
     const Node& operator[](const int &position) const {
+#ifdef INPUT_GENERATOR_DEBUG
         if (position < indexStart || position >= indexStart + size())
             throw Exception("index out of range in the graph");
+#endif
         return nodes[position - indexStart];
     }
 
@@ -224,6 +227,7 @@ void Graph<NodeData, EdgeData>::Index(
     // we also keep track of the values we have so we can assign demn easily
     std::unordered_set<int> usedValues;
     for (auto &node : fixed) {
+#ifdef INPUT_GENERATOR_DEBUG
         if (node.second < from ||
             node.second >= from + static_cast<int>(nodes.size()))
             throw Exception("On Graph Reindexing nodes must be reindexed using "
@@ -242,7 +246,7 @@ void Graph<NodeData, EdgeData>::Index(
         if (usedValues.find(node.second) != usedValues.end())
             throw Exception("On Graph Reindexing no two nodes are allowed to ha"
                             "ve the same index");
-
+#endif
         node.first.index() = node.second;
         fixedNodes.insert(node.first.getKey());
         usedValues.insert(node.second);
