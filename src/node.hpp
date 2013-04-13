@@ -5,6 +5,8 @@
 #include <memory>
 #include <vector>
 
+#include "exception.hpp"
+
 namespace inputGenerator {
 
 #if !defined(INPUT_GENERATOR_EDGE_HPP_)
@@ -24,13 +26,13 @@ class NodeWrapperBase;
 /**
  * Memory used is 16 * 2 ( from unordered multimaps) + 8 (the key and index) + (the data which by default is 4)
  */
-template<class NodeData = int, class EdgeData = void>
-class _Node {
+template<class NodeData, class EdgeData>
+class _NodeBase {
   public:
-    typedef _Node<NodeData, EdgeData> NodeType;
+    typedef _NodeBase<NodeData, EdgeData> NodeType;
     typedef _Edge<NodeData, EdgeData> EdgeType;
 
-    explicit _Node(const int &_index = 0);
+    explicit _NodeBase(const int &_index = 0);
 
     const unsigned& getKey() const;
 
@@ -58,8 +60,6 @@ class _Node {
 
     void clear();
 
-    NodeData data;
-
     // the index of the node
     int index;
 
@@ -84,26 +84,26 @@ class _Node {
 };
 
 template<class NodeData, class EdgeData>
-unsigned _Node<NodeData, EdgeData>::keyCount = 0;
+unsigned _NodeBase<NodeData, EdgeData>::keyCount = 0;
 
 template<class NodeData, class EdgeData>
-_Node<NodeData, EdgeData>::_Node(const int &_index) {
+_NodeBase<NodeData, EdgeData>::_NodeBase(const int &_index) {
     index = _index;
     key = keyCount++;
 }
 
 template<class NodeData, class EdgeData>
-const unsigned& _Node<NodeData, EdgeData>::getKey() const {
+const unsigned& _NodeBase<NodeData, EdgeData>::getKey() const {
     return key;
 }
 
 template<class NodeData, class EdgeData>
-bool _Node<NodeData, EdgeData>::hasEdge(const EdgeType& edge) const {
+bool _NodeBase<NodeData, EdgeData>::hasEdge(const EdgeType& edge) const {
     return _edges.count(edge.getKey()) > 0;
 }
 
 template<class NodeData, class EdgeData>
-bool _Node<NodeData, EdgeData>::eraseEdge(const EdgeType& edge) {
+bool _NodeBase<NodeData, EdgeData>::eraseEdge(const EdgeType& edge) {
     // first let's find it
     if (hasEdge(edge) == false)
         return false;
@@ -121,7 +121,7 @@ bool _Node<NodeData, EdgeData>::eraseEdge(const EdgeType& edge) {
 }
 
 template<class NodeData, class EdgeData>
-std::vector<_Edge<NodeData, EdgeData>> _Node<NodeData, EdgeData>::arcsTo(
+std::vector<_Edge<NodeData, EdgeData>> _NodeBase<NodeData, EdgeData>::arcsTo(
         const NodeType& otherNode) const {
     std::vector<EdgeType> result;
 
@@ -133,7 +133,7 @@ std::vector<_Edge<NodeData, EdgeData>> _Node<NodeData, EdgeData>::arcsTo(
 }
 
 template<class NodeData, class EdgeData>
-std::vector<_Edge<NodeData, EdgeData>> _Node<NodeData, EdgeData>::edgesTo(
+std::vector<_Edge<NodeData, EdgeData>> _NodeBase<NodeData, EdgeData>::edgesTo(
         const NodeType& otherNode) const {
     std::vector<EdgeType> result;
 
@@ -145,7 +145,7 @@ std::vector<_Edge<NodeData, EdgeData>> _Node<NodeData, EdgeData>::edgesTo(
 }
 
 template<class NodeData, class EdgeData>
-bool _Node<NodeData, EdgeData>::hasArc(const NodeType& otherNode) const {
+bool _NodeBase<NodeData, EdgeData>::hasArc(const NodeType& otherNode) const {
     auto range = _neighbours.equal_range(otherNode.getKey());
     for (auto it = range.first; it != range.second; ++it)
         if (!otherNode.hasEdge(it->second.getKey()))
@@ -154,7 +154,7 @@ bool _Node<NodeData, EdgeData>::hasArc(const NodeType& otherNode) const {
 }
 
 template<class NodeData, class EdgeData>
-bool _Node<NodeData, EdgeData>::hasEdge(const NodeType& otherNode) const {
+bool _NodeBase<NodeData, EdgeData>::hasEdge(const NodeType& otherNode) const {
     auto range = _neighbours.equal_range(otherNode.getKey());
     for (auto it = range.first; it != range.second; ++it)
         if (otherNode.hasEdge(it->second))
@@ -163,7 +163,8 @@ bool _Node<NodeData, EdgeData>::hasEdge(const NodeType& otherNode) const {
 }
 
 template<class NodeData, class EdgeData>
-std::vector<_Edge<NodeData, EdgeData>> _Node<NodeData, EdgeData>::arcs() const {
+std::vector<_Edge<NodeData, EdgeData>>
+_NodeBase<NodeData, EdgeData>::arcs() const {
     std::vector<EdgeType> result;
     for (auto &arc : _edges)
         if (!arc.second._to.lock()->hasEdge(arc.second))
@@ -172,7 +173,7 @@ std::vector<_Edge<NodeData, EdgeData>> _Node<NodeData, EdgeData>::arcs() const {
 }
 
 template<class NodeData, class EdgeData>
-std::vector<_Edge<NodeData, EdgeData>> _Node<NodeData, EdgeData>
+std::vector<_Edge<NodeData, EdgeData>> _NodeBase<NodeData, EdgeData>
 ::edges() const {
     std::vector<EdgeType> result;
     for (auto &edge : _edges)
@@ -182,10 +183,40 @@ std::vector<_Edge<NodeData, EdgeData>> _Node<NodeData, EdgeData>
 }
 
 template<class NodeData, class EdgeData>
-void _Node<NodeData, EdgeData>::clear() {
+void _NodeBase<NodeData, EdgeData>::clear() {
     _neighbours.clear();
     _edges.clear();
 }
+
+template<class NodeData, class EdgeData>
+class _Node : public _NodeBase<NodeData, EdgeData> {
+  public:
+    typedef NodeData& DataType;
+
+    explicit _Node(const int &index = 0):
+            _NodeBase<NodeData, EdgeData>(index) {
+    }
+
+    NodeData& data() {
+        return data_;
+    }
+  private:
+    NodeData data_;
+};
+
+template<class NodeData>
+class _Node<NodeData, void> : public _NodeBase<NodeData, void> {
+  public:
+    typedef int DataType;
+
+    explicit _Node(const int &index = 0):
+            _NodeBase<NodeData, void>(index) {
+    }
+
+    int data() {
+        return 0;
+    }
+};
 
 // the problem with nodes is the fact they can't be copied
 // this is a wrapper to allow such copying without having to deal with pointers
@@ -325,7 +356,7 @@ class NodeWrapperBase {
     }
 
 
-    NodeData& data() const {
+    typename _Node<NodeData, EdgeData>::DataType data() const {
         lazyconstruct();
 
         return internalNode -> data;
@@ -481,7 +512,7 @@ class NodeWrapper<NodeData, void> : public NodeWrapperBase<NodeData, void> {
         __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__)
 
 #if GCC_VERSION >= 40700
-template<class NodeData = int, class EdgeData = void>
+template<class NodeData = void, class EdgeData = void>
 using Node = NodeWrapper<NodeData, EdgeData>;
 #endif
 #undef GCC_VERSION

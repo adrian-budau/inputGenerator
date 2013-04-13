@@ -12,7 +12,7 @@
 
 namespace inputGenerator {
 
-template<class NodeData = int, class EdgeData = void>
+template<class NodeData = void, class EdgeData = void>
 std::pair<Graph<NodeData, EdgeData>, Graph<NodeData, EdgeData>> bipartite(
         const int &leftSize,
         const int &rightSize,
@@ -56,7 +56,7 @@ std::pair<Graph<NodeData, EdgeData>, Graph<NodeData, EdgeData>> bipartite(
     return std::make_pair(leftGraph, rightGraph);
 }
 
-template<class NodeData = int, class EdgeData = void>
+template<class NodeData = void, class EdgeData = void>
 std::pair<Graph<NodeData, EdgeData>, Graph<NodeData, EdgeData>> bipartite(
         const int &leftSize,
         const int &rightSize,
@@ -67,7 +67,7 @@ std::pair<Graph<NodeData, EdgeData>, Graph<NodeData, EdgeData>> bipartite(
                                          multipleEdges);
 }
 
-template<class NodeData = int, class EdgeData = void>
+template<class NodeData = void, class EdgeData = void>
 std::pair<Graph<NodeData, EdgeData>, Graph<NodeData, EdgeData>> bipartite(
         const int &nodes,
         const bool& multipleEdges = false) {
@@ -79,7 +79,7 @@ std::pair<Graph<NodeData, EdgeData>, Graph<NodeData, EdgeData>> bipartite(
     return bipartite<NodeData, EdgeData>(parts[0], parts[1], multipleEdges);
 }
 
-template<class NodeData = int, class EdgeData = void>
+template<class NodeData = void, class EdgeData = void>
 std::pair<Graph<NodeData, EdgeData>, Graph<NodeData, EdgeData>>
 regularBipartite(const int &nodes, const int &degree) {
     Graph<NodeData, EdgeData> leftGraph(nodes), rightGraph(nodes);

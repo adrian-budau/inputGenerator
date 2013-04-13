@@ -13,7 +13,7 @@
 
 namespace inputGenerator {
 
-template<class NodeData = int, class EdgeData = void>
+template<class NodeData = void, class EdgeData = void>
 class Graph {
   public:
     typedef _Node<NodeData, EdgeData> NodeType;

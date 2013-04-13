@@ -1,7 +1,8 @@
-.PHONY: install
+.PHONY: install clean clean-verbose lint test
 
 FOLDER=/usr/local/include/src
-SOURCES = examples/benchmark.cpp examples/include_install_test.cpp examples/random_bipartite_graphs.cpp examples/random_chains.cpp examples/random_graphs.cpp examples/random_numbers.cpp examples/random_strings.cpp examples/random_trees.cpp examples/random_vectors.cpp
+
+SOURCES = $(wildcard examples/*.cpp)
 OBJECTS = $(SOURCES:.cpp=.o)
 
 CFLAGS  = -Wall -Wextra -O2 -std=c++0x -I$(CURDIR) -pedantic -Wcast-align -Wcast-qual -Wctor-dtor-privacy -Wformat=2 -Winit-self -Wmissing-include-dirs -Wold-style-cast -Woverloaded-virtual -Wredundant-decls -Wstrict-overflow=5 -Wswitch-default -Wundef -Werror
@@ -15,18 +16,20 @@ install:
 
 clean:
 	@mkdir tmp
-	@cp examples/*.cpp tmp/
+	@mv examples/*.cpp tmp/
 	@rm -f examples/*
-	@cp tmp/* examples/
+	@mv tmp/* examples/
 	@rm -rf tmp
+	@rm -f src/*.gch
 	@echo "Clean OK"
 
 clean-verbose:
 	@mkdir -v tmp
-	@cp -v examples/*.cpp tmp/
+	@mv -v examples/*.cpp tmp/
 	@rm -fv examples/*
-	@cp -v tmp/* examples/
+	@mv -v tmp/* examples/
 	@rm -rfv tmp
+	@rm -fv src/*.gch
 	@echo "Clean OK"
 
 lint:
@@ -36,7 +39,7 @@ benchmark:
 	$(CXX) $(CFLAGS) examples/benchmark.cpp -o examples/benchmark $(LDFLAGS)
 	./examples/benchmark
 
-.cpp.o:
+%.o: %.cpp
 	$(CXX) $(CFLAGS) $< -o $@ $(LDFLAGS)
 
 test: $(OBJECTS) benchmark

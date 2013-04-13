@@ -7,11 +7,13 @@ namespace inputGenerator {
 
 #if !defined(INPUT_GENERATOR_NODE_HPP_)
 template<class NodeData, class EdgeData>
-class _Node;
+class _NodeBase;
 
 template<class NodeData, class EdgeData>
 class NodeWrapper;
 
+template<class NodeData, class EdgeData>
+class _Node;
 #endif
 
 template<class NodeData, class EdgeData>
@@ -38,7 +40,7 @@ class _EdgeBase {
     bool operator==(const EdgeType&) const;
 
   private:
-    friend class _Node<NodeData, void>;
+    friend class _NodeBase<NodeData, void>;
 
     std::weak_ptr<NodeType> _from, _to;
 

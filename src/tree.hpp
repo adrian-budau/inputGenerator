@@ -10,7 +10,7 @@
 namespace inputGenerator {
 
 // TODO(adrian_budau): use pruffer sequences
-template<class NodeData = int, class EdgeData = void>
+template<class NodeData = void, class EdgeData = void>
 Graph<NodeData, EdgeData> tree(const size_t &size = 1) {
 #ifdef INPUT_GENERATOR_DEBUG
     if (size <= 0)
@@ -29,7 +29,7 @@ Graph<NodeData, EdgeData> tree(const size_t &size = 1) {
     return graph;
 }
 
-template<class NodeData = int, class EdgeData = void>
+template<class NodeData = void, class EdgeData = void>
 Graph<NodeData, EdgeData> wideTree(const size_t &size,
                                    const size_t &minimumDiameter,
                                    Boolean::Object randomEnds = Boolean::True) {
