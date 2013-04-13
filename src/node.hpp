@@ -18,10 +18,13 @@ class _Edge;
 template<class NodeData, class EdgeData>
 class NodeWrapper;
 
+template<class NodeData, class EdgeData>
+class NodeWrapperBase;
+
 /**
  * Memory used is 16 * 2 ( from unordered multimaps) + 8 (the key and index) + (the data which by default is 4)
  */
-template<class NodeData = int, class EdgeData = int>
+template<class NodeData = int, class EdgeData = void>
 class _Node {
   public:
     typedef _Node<NodeData, EdgeData> NodeType;
@@ -63,6 +66,7 @@ class _Node {
   private:
     friend class _Edge<NodeData, EdgeData>;
     friend class NodeWrapper<NodeData, EdgeData>;
+    friend class NodeWrapperBase<NodeData, EdgeData>;
 
     // damn that's a lot, lot of memory, we're lucky we don't copy the data
     // well it's only 4 bytes anyway so that's not much of an improvement
@@ -186,33 +190,33 @@ void _Node<NodeData, EdgeData>::clear() {
 // the problem with nodes is the fact they can't be copied
 // this is a wrapper to allow such copying without having to deal with pointers
 template<class NodeData, class EdgeData>
-class NodeWrapper {
+class NodeWrapperBase {
   public:
     typedef _Node<NodeData, EdgeData> NodeType;
     typedef _Edge<NodeData, EdgeData> EdgeType;
 
-    NodeWrapper() {
+    NodeWrapperBase() {
         if (is_const_object_())
             internalNode.reset(new NodeType(0));
     }
 
-    NodeWrapper(
-            const NodeWrapper<NodeData, EdgeData> &otherNodeWrapper) {
+    NodeWrapperBase(
+            const NodeWrapperBase<NodeData, EdgeData> &otherNodeWrapper) {
         if (is_const_object_())
             otherNodeWrapper.lazyconstruct();
         internalNode = otherNodeWrapper.internalNode;
     }
 
-    explicit NodeWrapper(const std::shared_ptr<NodeType> &otherNode) {
+    explicit NodeWrapperBase(const std::shared_ptr<NodeType> &otherNode) {
         internalNode = otherNode;
     }
 
-    explicit NodeWrapper(const int &index):
+    explicit NodeWrapperBase(const int &index):
         internalNode(new NodeType(index)) {
     }
 
 
-    NodeWrapper& operator=(const NodeWrapper& otherNodeWrapper) {
+    NodeWrapperBase& operator=(const NodeWrapperBase& otherNodeWrapper) {
         otherNodeWrapper.lazyconstruct();
         internalNode = otherNodeWrapper.internalNode;
         return *this;
@@ -230,55 +234,13 @@ class NodeWrapper {
         return internalNode -> getKey();
     }
 
-    EdgeType addEdge(const NodeWrapper& otherNodeWrapper,
-                     const EdgeData& data = EdgeData()) const {
-        lazyconstruct();
-        otherNodeWrapper.lazyconstruct();
-        auto edge = EdgeType(internalNode, otherNodeWrapper.internalNode);
-        edge.data() = data;
-
-        internalNode -> _neighbours.insert({otherNodeWrapper.getKey(), edge});
-        internalNode -> _edges.insert({edge.getKey(), edge});
-
-        return edge;
-    }
-
-    EdgeType addEdge(const NodeWrapper& otherNodeWrapper,
-                     const EdgeData& data, const unsigned &key) const {
-        lazyconstruct();
-        otherNodeWrapper.lazyconstruct();
-        auto edge = EdgeType(internalNode, otherNodeWrapper.internalNode, key);
-        edge.data() = data;
-
-        internalNode -> _neighbours.insert({otherNodeWrapper.getKey(), edge});
-        internalNode -> _edges.insert({edge.getKey(), edge});
-
-        return edge;
-    }
-
-    EdgeType addEdge(const NodeWrapper& otherNodeWrapper,
-                     const std::shared_ptr<EdgeData>& dataPointer,
-                     const unsigned &key) const {
-        lazyconstruct();
-        otherNodeWrapper.lazyconstruct();
-        auto edge = EdgeType(internalNode,
-                             otherNodeWrapper.internalNode,
-                             key,
-                             dataPointer);
-
-        internalNode -> _neighbours.insert({otherNodeWrapper.getKey(), edge});
-        internalNode -> _edges.insert({edge.getKey(), edge});
-
-        return edge;
-    }
-
     int& index() const {
         lazyconstruct();
         return internalNode -> index;
     }
 
     // you can force to find arcs that are not edges(in case you have both)
-    std::vector<EdgeType> arcsTo(const NodeWrapper& otherNodeWrapper,
+    std::vector<EdgeType> arcsTo(const NodeWrapperBase& otherNodeWrapper,
                                  const bool& forceSearch = false) const {
         lazyconstruct();
         otherNodeWrapper.lazyconstruct();
@@ -295,7 +257,7 @@ class NodeWrapper {
     }
 
     // same here
-    std::vector<EdgeType> edgesTo(const NodeWrapper& otherNodeWrapper,
+    std::vector<EdgeType> edgesTo(const NodeWrapperBase& otherNodeWrapper,
                                   const bool& forceSearch = false) const {
         lazyconstruct();
         otherNodeWrapper.lazyconstruct();
@@ -312,7 +274,7 @@ class NodeWrapper {
         return result;
     }
 
-    bool hasArc(const NodeWrapper& otherNodeWrapper,
+    bool hasArc(const NodeWrapperBase& otherNodeWrapper,
                 const bool& forceSearch = false) const {
         lazyconstruct();
         otherNodeWrapper.lazyconstruct();
@@ -322,7 +284,7 @@ class NodeWrapper {
         return internalNode->_neighbours.count(otherNodeWrapper.getKey()) > 0;
     }
 
-    bool hasEdge(const NodeWrapper& otherNodeWrapper,
+    bool hasEdge(const NodeWrapperBase& otherNodeWrapper,
                  const bool& forceSearch = false) const {
         lazyconstruct();
         otherNodeWrapper.lazyconstruct();
@@ -375,11 +337,11 @@ class NodeWrapper {
         internalNode -> clear();
     }
 
-    bool operator==(const NodeWrapper<NodeData, EdgeData> &that) const {
+    bool operator==(const NodeWrapperBase<NodeData, EdgeData> &that) const {
         return internalNode == that.internalNode;
     }
 
-  private:
+  protected:
     bool is_const_object_() {
         return false;
     }
@@ -391,11 +353,135 @@ class NodeWrapper {
     std::shared_ptr<NodeType> internalNode;
 };
 
+template<class NodeData, class EdgeData>
+class NodeWrapper : public NodeWrapperBase<NodeData, EdgeData> {
+  public:
+    typedef _Node<NodeData, EdgeData> NodeType;
+    typedef _Edge<NodeData, EdgeData> EdgeType;
+
+    NodeWrapper():
+        NodeWrapperBase<NodeData, EdgeData>() {
+    }
+
+    NodeWrapper(
+            const NodeWrapper<NodeData, EdgeData> &otherNodeWrapper):
+        NodeWrapperBase<NodeData, EdgeData>(otherNodeWrapper) {
+    }
+
+    explicit NodeWrapper(const std::shared_ptr<NodeType> &otherNode):
+        NodeWrapperBase<NodeData, EdgeData>(otherNode) {
+    }
+
+    explicit NodeWrapper(const int &index):
+        NodeWrapperBase<NodeData, EdgeData>(index) {
+    }
+
+    EdgeType addEdge(const NodeWrapper& otherNodeWrapper,
+                     const EdgeData& data = EdgeData()) const {
+        lazyconstruct();
+        otherNodeWrapper.lazyconstruct();
+        auto edge = EdgeType(internalNode, otherNodeWrapper.internalNode);
+        edge.data() = data;
+
+        internalNode -> _neighbours.insert({otherNodeWrapper.getKey(), edge});
+        internalNode -> _edges.insert({edge.getKey(), edge});
+
+        return edge;
+    }
+
+    EdgeType addEdge(const NodeWrapper& otherNodeWrapper,
+                     const EdgeData& data, const unsigned &key) const {
+        lazyconstruct();
+        otherNodeWrapper.lazyconstruct();
+        auto edge = EdgeType(internalNode, otherNodeWrapper.internalNode, key);
+        edge.data() = data;
+
+        internalNode -> _neighbours.insert({otherNodeWrapper.getKey(), edge});
+        internalNode -> _edges.insert({edge.getKey(), edge});
+
+        return edge;
+    }
+
+    EdgeType addEdge(const NodeWrapper& otherNodeWrapper,
+                     const std::shared_ptr<EdgeData>& dataPointer,
+                     const unsigned &key) const {
+        lazyconstruct();
+        otherNodeWrapper.lazyconstruct();
+        auto edge = EdgeType(internalNode,
+                             otherNodeWrapper.internalNode,
+                             key,
+                             dataPointer);
+
+        internalNode -> _neighbours.insert({otherNodeWrapper.getKey(), edge});
+        internalNode -> _edges.insert({edge.getKey(), edge});
+
+        return edge;
+    }
+
+  private:
+    using NodeWrapperBase<NodeData, EdgeData>::lazyconstruct;
+    using NodeWrapperBase<NodeData, EdgeData>::internalNode;
+};
+
+template<class NodeData>
+class NodeWrapper<NodeData, void> : public NodeWrapperBase<NodeData, void> {
+  public:
+    typedef _Edge<NodeData, void> EdgeType;
+
+    typedef _Node<NodeData, void> NodeType;
+
+    NodeWrapper():
+        NodeWrapperBase<NodeData, void>() {
+    }
+
+    NodeWrapper(
+            const NodeWrapper<NodeData, void> &otherNodeWrapper):
+        NodeWrapperBase<NodeData, void>(otherNodeWrapper) {
+    }
+
+    explicit NodeWrapper(const std::shared_ptr<NodeType> &otherNode):
+        NodeWrapperBase<NodeData, void>(otherNode) {
+    }
+
+    explicit NodeWrapper(const int &index):
+        NodeWrapperBase<NodeData, void>(index) {
+    }
+
+    EdgeType addEdge(
+            const NodeWrapper<NodeData, void>& otherNodeWrapper) const {
+        lazyconstruct();
+        otherNodeWrapper.lazyconstruct();
+        auto edge = EdgeType(internalNode, otherNodeWrapper.internalNode);
+
+        internalNode -> _neighbours.insert({otherNodeWrapper.getKey(), edge});
+        internalNode -> _edges.insert({edge.getKey(), edge});
+
+        return edge;
+    }
+
+    EdgeType addEdge(const NodeWrapper<NodeData, void>& otherNodeWrapper,
+                     const unsigned &key) const {
+        lazyconstruct();
+        otherNodeWrapper.lazyconstruct();
+        auto edge = EdgeType(internalNode, otherNodeWrapper.internalNode, key);
+
+        internalNode -> _neighbours.insert({otherNodeWrapper.getKey(), edge});
+        internalNode -> _edges.insert({edge.getKey(), edge});
+
+        return edge;
+    }
+
+  private:
+    using NodeWrapperBase<NodeData, void>::lazyconstruct;
+
+    using NodeWrapperBase<NodeData, void>::internalNode;
+};
+
 #define GCC_VERSION (__GNUC__ * 10000 + \
         __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__)
 
 #if GCC_VERSION >= 40700
-template<class NodeData = int, class EdgeData = int>
+template<class NodeData = int, class EdgeData = void>
 using Node = NodeWrapper<NodeData, EdgeData>;
 #endif
 #undef GCC_VERSION

@@ -14,21 +14,20 @@ class NodeWrapper;
 
 #endif
 
-/**
- * Memory used is 20 bytes + (the data which by default is 4)
- */
-template<class NodeData = int, class EdgeData = int>
-class _Edge {
+template<class NodeData, class EdgeData>
+class _EdgeBase {
   public:
     typedef _Node<NodeData, EdgeData> NodeType;
-    typedef _Edge<NodeData, EdgeData> EdgeType;
+    typedef _EdgeBase<NodeData, EdgeData> EdgeType;
 
-    _Edge(const _Edge&);
+    _EdgeBase(const _EdgeBase&);
 
-    _Edge(const std::shared_ptr<NodeType>&, const std::shared_ptr<NodeType>&);
+    _EdgeBase(const std::shared_ptr<NodeType>&,
+              const std::shared_ptr<NodeType>&);
 
-    _Edge(const std::shared_ptr<NodeType>&, const std::shared_ptr<NodeType>&,
-          const int&, const std::shared_ptr<EdgeData>& data = new EdgeData);
+    _EdgeBase(const std::shared_ptr<NodeType>&,
+              const std::shared_ptr<NodeType>&,
+              const int&);
 
     const unsigned& getKey() const;
 
@@ -36,11 +35,107 @@ class _Edge {
 
     NodeWrapper<NodeData, EdgeData> to() const;
 
-    EdgeData& data() const;
-
-    std::shared_ptr<EdgeData> dataPointer() const;
-
     bool operator==(const EdgeType&) const;
+
+  private:
+    friend class _Node<NodeData, void>;
+
+    std::weak_ptr<NodeType> _from, _to;
+
+    // auto-increment value to assign each each a key
+    // so edge from x to y should match edge to y to x
+    static unsigned keyCount;
+
+    // the key itself
+    unsigned key;
+};
+
+template<class NodeData, class EdgeData>
+unsigned _EdgeBase<NodeData, EdgeData>::keyCount = 0;
+
+template<class NodeData, class EdgeData>
+_EdgeBase<NodeData, EdgeData>::_EdgeBase(
+        const _EdgeBase<NodeData, EdgeData>& that) {
+    _from = that._from;
+    _to = that._to;
+    key = that.key;
+}
+
+template<class NodeData, class EdgeData>
+_EdgeBase<NodeData, EdgeData>::_EdgeBase(const std::shared_ptr<NodeType>& from,
+                                 const std::shared_ptr<NodeType>& to) {
+    _from = from;
+    _to = to;
+    key = keyCount++;
+}
+
+template<class NodeData, class EdgeData>
+_EdgeBase<NodeData, EdgeData>::_EdgeBase(const std::shared_ptr<NodeType>& from,
+                                 const std::shared_ptr<NodeType>& to,
+                                 const int &_key) {
+    _from = from;
+    _to = to;
+    key = _key;
+}
+
+template<class NodeData, class EdgeData>
+const unsigned& _EdgeBase<NodeData, EdgeData>::getKey() const {
+    return key;
+}
+
+template<class NodeData, class EdgeData>
+NodeWrapper<NodeData, EdgeData> _EdgeBase<NodeData, EdgeData>::from() const {
+    return NodeWrapper<NodeData, EdgeData>(_from.lock());
+}
+
+template<class NodeData, class EdgeData>
+NodeWrapper<NodeData, EdgeData> _EdgeBase<NodeData, EdgeData>::to() const {
+    return NodeWrapper<NodeData, EdgeData>(_to.lock());
+}
+
+template<class NodeData, class EdgeData>
+bool _EdgeBase<NodeData, EdgeData>::operator==(
+        const _EdgeBase<NodeData, EdgeData> &edge) const {
+    return getKey() == edge.getKey();
+}
+
+/**
+ * Memory used is 20 bytes + (the data which by default is 0, hopefully)
+ */
+template<class NodeData, class EdgeData>
+class _Edge : public _EdgeBase<NodeData, EdgeData> {
+  public:
+    typedef _Node<NodeData, EdgeData> NodeType;
+    typedef _Edge<NodeData, EdgeData> EdgeType;
+
+    _Edge(const _Edge& that):
+            _EdgeBase<NodeData, EdgeData>(that) {
+        _data = that._data;
+    }
+
+    _Edge(const std::shared_ptr<NodeType>& from,
+          const std::shared_ptr<NodeType>& to):
+            _EdgeBase<NodeData, EdgeData>(from, to) {
+        _data.reset(new EdgeData());
+    }
+
+    _Edge(const std::shared_ptr<NodeType>& from,
+          const std::shared_ptr<NodeType>& to,
+          const int& key,
+          const std::shared_ptr<EdgeData>& data = new EdgeData):
+            _EdgeBase<NodeData, EdgeData>(from, to, key) {
+        _data = data;
+    }
+
+
+    EdgeData& data() const {
+        return *_data;
+    }
+
+
+    std::shared_ptr<EdgeData> dataPointer() const {
+        return _data;
+    }
 
   private:
     friend class _Node<NodeData, EdgeData>;
@@ -57,64 +152,27 @@ class _Edge {
     std::shared_ptr<EdgeData> _data;
 };
 
-template<class NodeData, class EdgeData>
-unsigned _Edge<NodeData, EdgeData>::keyCount = 0;
+template<class NodeData>
+class _Edge<NodeData, void> : public _EdgeBase<NodeData, void> {
+  public:
+    typedef _Node<NodeData, void> NodeType;
+    typedef _Edge<NodeData, void> EdgeType;
 
-template<class NodeData, class EdgeData>
-_Edge<NodeData, EdgeData>::_Edge(const _Edge<NodeData, EdgeData>& that) {
-    _from = that._from;
-    _to = that._to;
-    key = that.key;
+    _Edge(const _Edge& that):
+        _EdgeBase<NodeData, void>(that) {
+    }
 
-    _data = that._data;
-}
+    _Edge(const std::shared_ptr<NodeType>& from,
+          const std::shared_ptr<NodeType>& to):
+        _EdgeBase<NodeData, void>(from, to) {
+    }
 
-template<class NodeData, class EdgeData>
-_Edge<NodeData, EdgeData>::_Edge(const std::shared_ptr<NodeType>& from,
-                                 const std::shared_ptr<NodeType>& to) {
-    _from = from;
-    _to = to;
-    key = keyCount++;
-
-    _data.reset(new EdgeData());
-}
-
-template<class NodeData, class EdgeData>
-_Edge<NodeData, EdgeData>::_Edge(const std::shared_ptr<NodeType>& from,
-                                 const std::shared_ptr<NodeType>& to,
-                                 const int &_key,
-                                 const std::shared_ptr<EdgeData>& data) {
-    _from = from;
-    _to = to;
-    key = _key;
-
-    _data = data;
-}
-
-template<class NodeData, class EdgeData>
-const unsigned& _Edge<NodeData, EdgeData>::getKey() const {
-    return key;
-}
-
-template<class NodeData, class EdgeData>
-NodeWrapper<NodeData, EdgeData> _Edge<NodeData, EdgeData>::from() const {
-    return NodeWrapper<NodeData, EdgeData>(_from.lock());
-}
-
-template<class NodeData, class EdgeData>
-NodeWrapper<NodeData, EdgeData> _Edge<NodeData, EdgeData>::to() const {
-    return NodeWrapper<NodeData, EdgeData>(_to.lock());
-}
-
-template<class NodeData, class EdgeData>
-EdgeData& _Edge<NodeData, EdgeData>::data() const {
-    return *_data;
-}
-
-template<class NodeData, class EdgeData>
-std::shared_ptr<EdgeData> _Edge<NodeData, EdgeData>::dataPointer() const {
-    return _data;
-}
+    _Edge(const std::shared_ptr<NodeType>& from,
+          const std::shared_ptr<NodeType>& to,
+          const int& key):
+            _EdgeBase<NodeData, void>(from, to, key) {
+    }
+};
 
 template<class NodeData, class EdgeData>
 _Edge<NodeData, EdgeData> addEdge(const NodeWrapper<NodeData, EdgeData> &from,
@@ -125,17 +183,19 @@ _Edge<NodeData, EdgeData> addEdge(const NodeWrapper<NodeData, EdgeData> &from,
     return edge;
 }
 
+template<class NodeData>
+_Edge<NodeData, void> addEdge(const NodeWrapper<NodeData, void> &from,
+                              const NodeWrapper<NodeData, void> &to) {
+    auto edge = from.addEdge(to);
+    to.addEdge(from, edge.getKey());
+    return edge;
+}
+
 template<class NodeData, class EdgeData>
 bool eraseEdge(const _Edge<NodeData, EdgeData> &edge) {
     // edge lives in `from` so let's delete from the other end first
     edge.to().eraseEdge(edge);
     return edge.from().eraseEdge(edge);
-}
-
-template<class NodeData, class EdgeData>
-bool _Edge<NodeData, EdgeData>::operator==(
-        const _Edge<NodeData, EdgeData> &edge) const {
-    return getKey() == edge.getKey();
 }
 
 }  // namespace inputGenerator

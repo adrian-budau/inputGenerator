@@ -10,7 +10,7 @@ namespace inputGenerator {
 // you can generate a non-random graph if you really want
 // by making the second parameter false
 // this is undirected
-template<class NodeData = int, class EdgeData = int>
+template<class NodeData = int, class EdgeData = void>
 Graph<NodeData, EdgeData> chain(const int &size = 1,
                                 Boolean::Object random = Boolean::True) {
 #ifdef INPUT_GENERATOR_DEBUG
@@ -28,7 +28,7 @@ Graph<NodeData, EdgeData> chain(const int &size = 1,
     return graph;
 }
 
-template<class NodeData = int, class EdgeData = int>
+template<class NodeData = int, class EdgeData = void>
 Graph<NodeData, EdgeData> path(const int &size = 1,
                                Boolean::Object random = Boolean::True) {
 #ifdef INPUT_GENERATOR_DEBUG

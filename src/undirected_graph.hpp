@@ -11,7 +11,7 @@
 
 namespace inputGenerator {
 
-template<class NodeData = int, class EdgeData = int>
+template<class NodeData = int, class EdgeData = void>
 Graph<NodeData, EdgeData> undirectedGraph(const size_t& size,
                                           const size_t& edges) {
     Graph<NodeData, EdgeData> graph(size);
@@ -34,7 +34,7 @@ Graph<NodeData, EdgeData> undirectedGraph(const size_t& size,
     return graph;
 }
 
-template<class NodeData = int, class EdgeData = int>
+template<class NodeData = int, class EdgeData = void>
 Graph<NodeData, EdgeData> undirectedGraph(const size_t& size,
                                           const size_t& edges,
                                           Boolean::Object connected) {
@@ -73,7 +73,7 @@ Graph<NodeData, EdgeData> undirectedGraph(const size_t& size,
     return graph;
 }
 
-template<class NodeData = int, class EdgeData = int>
+template<class NodeData = int, class EdgeData = void>
 Graph<NodeData, EdgeData> undirectedGraph(
         const size_t& size,
         Boolean::Object connected = Boolean::False) {
