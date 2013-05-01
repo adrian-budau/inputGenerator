@@ -440,6 +440,9 @@ class NodeWrapper : public NodeWrapperBase<NodeData, EdgeData> {
     }
 
   private:
+    friend class Graph<NodeData, EdgeData>;
+    friend class _NodeBase<NodeData, EdgeData>;
+
     using NodeWrapperBase<NodeData, EdgeData>::lazyconstruct;
     using NodeWrapperBase<NodeData, EdgeData>::internalNode;
 };
@@ -495,8 +498,10 @@ class NodeWrapper<NodeData, void> : public NodeWrapperBase<NodeData, void> {
     }
 
   private:
-    using NodeWrapperBase<NodeData, void>::lazyconstruct;
+    friend class Graph<NodeData, void>;
+    friend class _NodeBase<NodeData, void>;
 
+    using NodeWrapperBase<NodeData, void>::lazyconstruct;
     using NodeWrapperBase<NodeData, void>::internalNode;
 };
 
