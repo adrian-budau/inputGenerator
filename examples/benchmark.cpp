@@ -56,8 +56,12 @@ void testRandomInt() {
 }
 
 void testGeneratingGraphs() {
-    auto pause = []() {
-        auto graph = inputGenerator::Graph<>(100000);
+    auto simpleGraphTest = [](const int &size) {
+        return inputGenerator::Graph<>(size);
+    };
+
+    auto pause = [&simpleGraphTest]() {
+        auto graph = simpleGraphTest(100000);
     };
 
     auto chainGraphTest = []() {
@@ -94,6 +98,9 @@ void testGeneratingGraphs() {
     };
 
     std::cout << "For graph generation there will be some time between tests to have consistency (FIXME: find out why I need to do this)!" << std::endl;
+
+    pause();
+    std::cout << "Just for creating a graph 1 million nodes takes " << time_taken(std::bind(simpleGraphTest, 1000000)) << std::endl;
 
     pause();
     std::cout << "Generating a 1 million node chain takes " << time_taken(chainGraphTest) << std::endl;

@@ -13,12 +13,12 @@ ostream& operator<<(ostream& cout, const pair<Graph<>, Graph<>> graph) {
 
     cout << "Nodes left: ";
     for (auto &node: left)
-        cout << node.index() << "(" << node.getKey() << ") ";
+        cout << node.index() << " ";
     cout << endl;
 
     cout << "Nodes right: ";
     for (auto &node: right)
-        cout << node.index() << "(" << node.getKey() << ") ";
+        cout << node.index() << " ";
     cout << endl;
 
     cout << endl;

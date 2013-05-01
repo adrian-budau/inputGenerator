@@ -40,7 +40,7 @@ class _EdgeBase {
     bool operator==(const EdgeType&) const;
 
   private:
-    friend class _NodeBase<NodeData, void>;
+    friend class _NodeBase<NodeData, EdgeData>;
 
     std::weak_ptr<NodeType> _from, _to;
 

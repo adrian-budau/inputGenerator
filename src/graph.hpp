@@ -223,7 +223,7 @@ void Graph<NodeData, EdgeData>::Index(
         std::initializer_list< std::pair<Node, int> > fixed,
         const int &from) {
     // we go through each fixed node and keep track of it
-    std::unordered_set<unsigned> fixedNodes;
+    std::unordered_set<NodeType*> fixedNodes;
     // we also keep track of the values we have so we can assign demn easily
     std::unordered_set<int> usedValues;
     for (auto &node : fixed) {
@@ -237,7 +237,7 @@ void Graph<NodeData, EdgeData>::Index(
         // why would you give a node twice?
         // anyway we ignore following attempts
         // it's your duty to not have multiple such actions
-        if (fixedNodes.find(node.first.getKey()) != fixedNodes.end())
+        if (fixedNodes.find(node.first.internalNode.get()) != fixedNodes.end())
             throw Exception("On Graph Reindexing no node is allowed to appear "
                             "twice");
 
@@ -248,7 +248,7 @@ void Graph<NodeData, EdgeData>::Index(
                             "ve the same index");
 #endif
         node.first.index() = node.second;
-        fixedNodes.insert(node.first.getKey());
+        fixedNodes.insert(node.first.internalNode.get());
         usedValues.insert(node.second);
     }
 
@@ -260,7 +260,7 @@ void Graph<NodeData, EdgeData>::Index(
     unusedValues = shuffle(unusedValues);
 
     for (auto &node : nodes) {
-        if (fixedNodes.find(node.getKey()) != fixedNodes.end())
+        if (fixedNodes.find(node.internalNode.get()) != fixedNodes.end())
             continue;
 
         node.index() = unusedValues.back();

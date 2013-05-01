@@ -1,7 +1,7 @@
 #ifndef INPUT_GENERATOR_NODE_HPP_
 #define INPUT_GENERATOR_NODE_HPP_
 
-#include <unordered_map>
+#include <map>
 #include <memory>
 #include <vector>
 
@@ -23,6 +23,9 @@ class NodeWrapper;
 template<class NodeData, class EdgeData>
 class NodeWrapperBase;
 
+template<class NodeData, class EdgeData>
+class Graph;
+
 /**
  * Memory used is 16 * 2 ( from unordered multimaps) + 8 (the key and index) + (the data which by default is 4)
  */
@@ -33,8 +36,6 @@ class _NodeBase {
     typedef _Edge<NodeData, EdgeData> EdgeType;
 
     explicit _NodeBase(const int &_index = 0);
-
-    const unsigned& getKey() const;
 
     EdgeType addEdge(NodeType&);
 
@@ -72,29 +73,14 @@ class _NodeBase {
     // well it's only 4 bytes anyway so that's not much of an improvement
     // now for a graph of N nodes and E edges we have at least
     // N * 44 + 2 * E * 20 bytes occupied
-    std::unordered_multimap<unsigned, EdgeType> _neighbours;
+    std::multimap<const NodeType*, EdgeType> _neighbours;
 
-    std::unordered_map<unsigned, EdgeType> _edges;
-
-    // auto-increment value to assign each _Node object a key
-    static unsigned keyCount;
-
-    // the key itself
-    unsigned key;
+    std::map<unsigned, EdgeType> _edges;
 };
-
-template<class NodeData, class EdgeData>
-unsigned _NodeBase<NodeData, EdgeData>::keyCount = 0;
 
 template<class NodeData, class EdgeData>
 _NodeBase<NodeData, EdgeData>::_NodeBase(const int &_index) {
     index = _index;
-    key = keyCount++;
-}
-
-template<class NodeData, class EdgeData>
-const unsigned& _NodeBase<NodeData, EdgeData>::getKey() const {
-    return key;
 }
 
 template<class NodeData, class EdgeData>
@@ -108,7 +94,8 @@ bool _NodeBase<NodeData, EdgeData>::eraseEdge(const EdgeType& edge) {
     if (hasEdge(edge) == false)
         return false;
     auto realEdge = _edges.find(edge.getKey());
-    auto where = _neighbours.equal_range(realEdge->second.to().getKey());
+    auto where = _neighbours.equal_range(
+            realEdge->second.to().internalNode.get());
 
     for (auto it = where.first; it != where.second; ++it)
         if (it -> second == realEdge -> second) {
@@ -125,7 +112,7 @@ std::vector<_Edge<NodeData, EdgeData>> _NodeBase<NodeData, EdgeData>::arcsTo(
         const NodeType& otherNode) const {
     std::vector<EdgeType> result;
 
-    auto range = _neighbours.equal_range(otherNode.getKey());
+    auto range = _neighbours.equal_range(&otherNode);
     for (auto it = range.first; it != range.second; ++it)
         if (!otherNode.hasEdge(it->second))
             result.push_back(it->second);
@@ -137,7 +124,7 @@ std::vector<_Edge<NodeData, EdgeData>> _NodeBase<NodeData, EdgeData>::edgesTo(
         const NodeType& otherNode) const {
     std::vector<EdgeType> result;
 
-    auto range = _neighbours.equal_range(otherNode.getKey());
+    auto range = _neighbours.equal_range(&otherNode);
     for (auto it = range.first; it != range.second; ++it)
         if (otherNode.hasEdge(it->second))
             result.push_back(it->second);
@@ -146,16 +133,16 @@ std::vector<_Edge<NodeData, EdgeData>> _NodeBase<NodeData, EdgeData>::edgesTo(
 
 template<class NodeData, class EdgeData>
 bool _NodeBase<NodeData, EdgeData>::hasArc(const NodeType& otherNode) const {
-    auto range = _neighbours.equal_range(otherNode.getKey());
+    auto range = _neighbours.equal_range(&otherNode);
     for (auto it = range.first; it != range.second; ++it)
-        if (!otherNode.hasEdge(it->second.getKey()))
+        if (!otherNode.hasEdge(it->second))
             return true;
     return false;
 }
 
 template<class NodeData, class EdgeData>
 bool _NodeBase<NodeData, EdgeData>::hasEdge(const NodeType& otherNode) const {
-    auto range = _neighbours.equal_range(otherNode.getKey());
+    auto range = _neighbours.equal_range(&otherNode);
     for (auto it = range.first; it != range.second; ++it)
         if (otherNode.hasEdge(it->second))
             return true;
@@ -260,11 +247,6 @@ class NodeWrapperBase {
                     new NodeType(0));
     }
 
-    const unsigned& getKey() const {
-        lazyconstruct();
-        return internalNode -> getKey();
-    }
-
     int& index() const {
         lazyconstruct();
         return internalNode -> index;
@@ -279,7 +261,7 @@ class NodeWrapperBase {
             return (internalNode -> arcsTo(*otherNodeWrapper.internalNode));
 
         auto interval = internalNode->_neighbours.equal_range(
-                                otherNodeWrapper.getKey());
+                                otherNodeWrapper.internalNode.get());
 
         std::vector<EdgeType> result;
         for (auto &it = interval.first; it != interval.second; ++it)
@@ -293,11 +275,11 @@ class NodeWrapperBase {
         lazyconstruct();
         otherNodeWrapper.lazyconstruct();
 
-       if (forceSearch)
+        if (forceSearch)
             return (internalNode -> edgesTo(*otherNodeWrapper.internalNode));
 
         auto interval = internalNode->_neighbours.equal_range(
-                                otherNodeWrapper.getKey());
+                                otherNodeWrapper.internalNode.get());
 
         std::vector<EdgeType> result;
         for (auto &it = interval.first; it != interval.second; ++it)
@@ -312,7 +294,8 @@ class NodeWrapperBase {
 
         if (forceSearch)
             return internalNode -> hasArc(*otherNodeWrapper.internalNode);
-        return internalNode->_neighbours.count(otherNodeWrapper.getKey()) > 0;
+        return internalNode->_neighbours.count(
+                otherNodeWrapper.internalNode.get()) > 0;
     }
 
     bool hasEdge(const NodeWrapperBase& otherNodeWrapper,
@@ -322,7 +305,8 @@ class NodeWrapperBase {
 
         if (forceSearch)
             return internalNode -> hasEdge(*otherNodeWrapper.internalNode);
-        return internalNode->_neighbours.count(otherNodeWrapper.getKey()) > 0;
+        return internalNode->_neighbours.count(
+                otherNodeWrapper.internalNode.get()) > 0;
     }
 
     bool eraseEdge(const EdgeType& edge) const {
@@ -373,6 +357,9 @@ class NodeWrapperBase {
     }
 
   protected:
+    friend class Graph<NodeData, EdgeData>;
+    friend class _NodeBase<NodeData, EdgeData>;
+
     bool is_const_object_() {
         return false;
     }
@@ -414,7 +401,8 @@ class NodeWrapper : public NodeWrapperBase<NodeData, EdgeData> {
         auto edge = EdgeType(internalNode, otherNodeWrapper.internalNode);
         edge.data() = data;
 
-        internalNode -> _neighbours.insert({otherNodeWrapper.getKey(), edge});
+        internalNode -> _neighbours.insert({otherNodeWrapper.internalNode.get(),
+                                            edge});
         internalNode -> _edges.insert({edge.getKey(), edge});
 
         return edge;
@@ -427,7 +415,8 @@ class NodeWrapper : public NodeWrapperBase<NodeData, EdgeData> {
         auto edge = EdgeType(internalNode, otherNodeWrapper.internalNode, key);
         edge.data() = data;
 
-        internalNode -> _neighbours.insert({otherNodeWrapper.getKey(), edge});
+        internalNode -> _neighbours.insert({otherNodeWrapper.internalNode.get(),
+                                            edge});
         internalNode -> _edges.insert({edge.getKey(), edge});
 
         return edge;
@@ -443,7 +432,8 @@ class NodeWrapper : public NodeWrapperBase<NodeData, EdgeData> {
                              key,
                              dataPointer);
 
-        internalNode -> _neighbours.insert({otherNodeWrapper.getKey(), edge});
+        internalNode -> _neighbours.insert({otherNodeWrapper.internalNode.get(),
+                                            edge});
         internalNode -> _edges.insert({edge.getKey(), edge});
 
         return edge;
@@ -484,7 +474,8 @@ class NodeWrapper<NodeData, void> : public NodeWrapperBase<NodeData, void> {
         otherNodeWrapper.lazyconstruct();
         auto edge = EdgeType(internalNode, otherNodeWrapper.internalNode);
 
-        internalNode -> _neighbours.insert({otherNodeWrapper.getKey(), edge});
+        internalNode -> _neighbours.insert({otherNodeWrapper.internalNode.get(),
+                                            edge});
         internalNode -> _edges.insert({edge.getKey(), edge});
 
         return edge;
@@ -496,7 +487,8 @@ class NodeWrapper<NodeData, void> : public NodeWrapperBase<NodeData, void> {
         otherNodeWrapper.lazyconstruct();
         auto edge = EdgeType(internalNode, otherNodeWrapper.internalNode, key);
 
-        internalNode -> _neighbours.insert({otherNodeWrapper.getKey(), edge});
+        internalNode -> _neighbours.insert({otherNodeWrapper.internalNode.get(),
+                                            edge});
         internalNode -> _edges.insert({edge.getKey(), edge});
 
         return edge;

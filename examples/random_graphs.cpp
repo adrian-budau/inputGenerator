@@ -9,7 +9,7 @@ using namespace inputGenerator;
 ostream& operator<<(ostream& cout, const Graph<>& V) {
     cout << "Nodes: ";
     for (auto &node: V)
-        cout << node.index() << "(" << node.getKey() << ") ";
+        cout << node.index() << " ";
     cout << endl;
     cout << "Edges: " << endl;
 
