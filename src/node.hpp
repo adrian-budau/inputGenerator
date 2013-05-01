@@ -1,6 +1,7 @@
 #ifndef INPUT_GENERATOR_NODE_HPP_
 #define INPUT_GENERATOR_NODE_HPP_
 
+#include <unordered_map>
 #include <map>
 #include <memory>
 #include <vector>
@@ -73,9 +74,13 @@ class _NodeBase {
     // well it's only 4 bytes anyway so that's not much of an improvement
     // now for a graph of N nodes and E edges we have at least
     // N * 44 + 2 * E * 20 bytes occupied
+#ifdef INPUT_GENERATOR_NODE_MAP
     std::multimap<const NodeType*, EdgeType> _neighbours;
-
     std::map<unsigned, EdgeType> _edges;
+#else
+    std::unordered_multimap<const NodeType*, EdgeType> _neighbours;
+    std::unordered_map<unsigned, EdgeType> _edges;
+#endif
 };
 
 template<class NodeData, class EdgeData>

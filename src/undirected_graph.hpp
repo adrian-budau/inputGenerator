@@ -52,7 +52,7 @@ Graph<NodeData, EdgeData> undirectedGraph(const size_t& size,
         int x = edge.from().index();
         int y = edge.to().index();
 
-        if (!graph[x].hasEdge(graph[y])) {
+        if (graph[x].hasEdge(graph[y]) == false) {
             ++bad_edges;
             addEdge(graph[x], graph[y]);
         }
@@ -64,7 +64,7 @@ Graph<NodeData, EdgeData> undirectedGraph(const size_t& size,
         int x = edge.from().index();
         int y = edge.to().index();
 
-        if (!connected_graph[x].hasEdge(connected_graph[y])) {
+        if (connected_graph[x].hasEdge(connected_graph[y]) == false) {
             eraseEdge(edge);
             --bad_edges;
         }
