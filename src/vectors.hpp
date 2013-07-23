@@ -18,6 +18,8 @@ namespace inputGenerator {
 
 template<class RandomAccessIterator>
 void randomShuffle(RandomAccessIterator first, RandomAccessIterator last) {
+    if (first == last)
+        return;
     for (RandomAccessIterator it = first + 1; it != last; ++it)
         std::iter_swap(it,
                        first + randomInt<std::ptrdiff_t>(0, last - first - 1));

@@ -196,13 +196,13 @@ class _Node : public _NodeBase<NodeData, EdgeData> {
     NodeData data_;
 };
 
-template<class NodeData>
-class _Node<NodeData, void> : public _NodeBase<NodeData, void> {
+template<class EdgeData>
+class _Node<void, EdgeData> : public _NodeBase<void, EdgeData> {
   public:
     typedef int DataType;
 
     explicit _Node(const int &index = 0):
-            _NodeBase<NodeData, void>(index) {
+            _NodeBase<void, EdgeData>(index) {
     }
 
     int data() {
@@ -344,11 +344,10 @@ class NodeWrapperBase {
         return result;
     }
 
-
     typename _Node<NodeData, EdgeData>::DataType data() const {
         lazyconstruct();
 
-        return internalNode -> data;
+        return internalNode -> data();
     }
 
     void clear() const {

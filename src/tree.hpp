@@ -43,7 +43,7 @@ Graph<NodeData, EdgeData> wideTree(const size_t &size,
     if (size < minimumDiameter)
         throw Exception("Diameter must be strictly less than the tree size");
 #endif
-    Graph<NodeData, EdgeData> graph = chain(minimumDiameter, randomEnds);
+    Graph<NodeData, EdgeData> graph = chain<NodeData, EdgeData>(minimumDiameter, randomEnds);
     typename Graph<NodeData, EdgeData>::Node start = graph[0],
                                              end = graph[minimumDiameter - 1];
 

@@ -18,8 +18,10 @@ Graph<NodeData, EdgeData> undirectedGraph(const size_t& size,
     int64_t max_edges_number =
         static_cast<int64_t>(size) * static_cast<int64_t>(size - 1) / 2;
 
-    std::vector<int64_t> edges_ids =
-        randomSample<int64_t>(edges, 0, max_edges_number);
+    std::vector<int64_t> edges_ids;
+    if (size > 1)
+        edges_ids =
+            randomSample<int64_t>(edges, 0, max_edges_number - 1);
 
     size_t node = 0;
     int64_t from = 0;
