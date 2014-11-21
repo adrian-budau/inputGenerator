@@ -357,7 +357,11 @@ class NodeWrapperBase {
     }
 
     bool operator==(const NodeWrapperBase<NodeData, EdgeData> &that) const {
-        return internalNode == that.internalNode;
+        return internalNode == that.internalNode && internalNode;
+    }
+
+    bool operator!=(const NodeWrapperBase<NodeData, EdgeData> &that) const {
+        return internalNode != that.internalNode || !internalNode;
     }
 
   protected:
@@ -518,6 +522,8 @@ using Node = NodeWrapper<NodeData, EdgeData>;
 #endif
 #undef GCC_VERSION
 
+template<class NodeData = void, class EdgeData = void>
+using Node = NodeWrapper<NodeData, EdgeData>;
 }  // namespace inputGenerator
 
 #endif  // INPUT_GENERATOR_NODE_HPP_

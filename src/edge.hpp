@@ -39,10 +39,10 @@ class _EdgeBase {
 
     bool operator==(const EdgeType&) const;
 
-  private:
-    friend class _NodeBase<NodeData, EdgeData>;
-
+  protected:
     std::weak_ptr<NodeType> _from, _to;
+
+    friend class _NodeBase<NodeData, EdgeData>;
 
     // auto-increment value to assign each each a key
     // so edge from x to y should match edge to y to x
@@ -141,15 +141,7 @@ class _Edge : public _EdgeBase<NodeData, EdgeData> {
 
   private:
     friend class _Node<NodeData, EdgeData>;
-
-    std::weak_ptr<NodeType> _from, _to;
-
-    // auto-increment value to assign each each a key
-    // so edge from x to y should match edge to y to x
-    static unsigned keyCount;
-
-    // the key itself
-    unsigned key;
+    friend class _NodeBase<NodeData, EdgeData>;
 
     std::shared_ptr<EdgeData> _data;
 };
@@ -174,6 +166,9 @@ class _Edge<NodeData, void> : public _EdgeBase<NodeData, void> {
           const int& key):
             _EdgeBase<NodeData, void>(from, to, key) {
     }
+
+    friend class _Node<NodeData, void>;
+    friend class _NodeBase<NodeData, void>;
 };
 
 template<class NodeData, class EdgeData>
@@ -189,7 +184,8 @@ template<class NodeData>
 _Edge<NodeData, void> addEdge(const NodeWrapper<NodeData, void> &from,
                               const NodeWrapper<NodeData, void> &to) {
     auto edge = from.addEdge(to);
-    to.addEdge(from, edge.getKey());
+    if (from != to)
+        to.addEdge(from, edge.getKey());
     return edge;
 }
 

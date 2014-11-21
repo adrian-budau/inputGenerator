@@ -106,7 +106,7 @@ std::vector<IntType> randomSample(
     std::vector<IntType> sample;
     sample.reserve(numbers);  // for some extra speed
 
-    for (size_t taken = 0; taken < numbers; ++taken) {
+    for (size_t taken = 1; taken <= numbers; ++taken) {
         // long live "Programming Pearls"
         IntType toTake = randomInt<IntType>(from, to - numbers + taken);
         if (takenNumbers.find(toTake) == takenNumbers.end()) {

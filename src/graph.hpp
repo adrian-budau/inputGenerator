@@ -155,6 +155,14 @@ class Graph {
 
     std::vector<EdgeType> edges(const bool &forceSearch = true) const;
 
+    void expandNode(const Node&, const Graph<NodeData, EdgeData>&);
+
+    void expandNode(const Node&, const Graph<NodeData, EdgeData>&, const std::vector<Node>&);
+
+    void expandEdge(const EdgeType&, Graph<NodeData, EdgeData>&, const Node&, const Node&);
+
+    void expandArc(const EdgeType&, Graph<NodeData, EdgeData>&, const Node&, const Node&);
+
     bool hasNode(const Node&) const;
 
     int min() const {
@@ -165,7 +173,7 @@ class Graph {
         return indexStart + size() - 1;
     }
 
-  private:
+  protected:
     std::vector<Node> nodes;
 
     int indexStart;
@@ -194,6 +202,7 @@ Graph<NodeData, EdgeData>& Graph<NodeData, EdgeData>::operator=(
         Graph<NodeData, EdgeData> &&graph) {
     std::swap(nodes, graph.nodes);
     std::swap(indexStart, graph.indexStart);
+    return *this;
 }
 
 template<class NodeData, class EdgeData>
@@ -316,7 +325,7 @@ std::vector<_Edge<NodeData, EdgeData>> Graph<NodeData, EdgeData>::edges(
 
         for (auto &edge : toAdd)
             if (hasNode(edge.to())) {
-                if (edge.from().index() < edge.to().index())
+                if (edge.from().index() <= edge.to().index())
                     result.push_back(edge);
             } else {
                 result.push_back(edge);
@@ -352,6 +361,59 @@ Graph<NodeData, EdgeData> shuffle(const Graph<NodeData, EdgeData>& graph) {
     newGraph.Index();
 
     return newGraph;
+}
+
+template<class NodeData, class EdgeData>
+void Graph<NodeData, EdgeData>::expandNode(const Node& node, const Graph<NodeData, EdgeData>& graph) {
+    expandNode(node, graph, std::vector<Node>(graph.begin(), graph.end()));
+}
+
+namespace help {
+    template<class NodeData, class EdgeData>
+    void addEdge(Node<NodeData, EdgeData> from, Node<NodeData, EdgeData> to, _Edge<NodeData, EdgeData> original) {
+        ::inputGenerator::addEdge(from, to, original.data());
+    }
+
+    template<class NodeData>
+    void addEdge(Node<NodeData, void> from, Node<NodeData, void> to, _Edge<NodeData, void>) {
+        ::inputGenerator::addEdge(from, to);
+    }
+}
+
+// expandNode only works when the node has no incoming arcs
+template<class NodeData, class EdgeData>
+void Graph<NodeData, EdgeData>::expandNode(const Node& node, const Graph<NodeData, EdgeData>& graph, const std::vector<Node>& possibleNodes) {
+    if (!hasNode(node))
+        throw Exception("Node to expand must be in graph");
+
+    if (graph.size() == 0)
+        throw Exception("Graph to expand must contain at least one node");
+
+    std::vector<Node> newNodes;
+    newNodes.insert(newNodes.end(), graph.begin(), graph.end());
+
+    for (auto &edge : node.edges()) {
+        using namespace help;
+        addEdge(randomElement(possibleNodes), edge.to(), edge);
+        eraseEdge(edge);
+    }
+
+    newNodes[0].index() = node.index();
+    nodes[node.index() - indexStart] = newNodes[0];
+
+    for (auto it = newNodes.begin() + 1; it != newNodes.end(); ++it)
+        addNodes({*it});
+}
+
+template<class NodeData, class EdgeData>
+void Graph<NodeData, EdgeData>::expandEdge(const _Edge<NodeData, EdgeData>& edge, Graph<NodeData, EdgeData>& graph, const Node& from, const Node& to) {
+    std::vector<Node> newNodes;
+
+    eraseEdge(edge);
+
+    addEdge(edge.from(), from);
+    addEdge(to, edge.to());
+    mergeGraph(graph);
 }
 
 }  // namespace inputGenerator
