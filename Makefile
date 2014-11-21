@@ -16,6 +16,7 @@ install:
 
 clean:
 	@mkdir tmp
+	@rm -rf examples/*.dSYM
 	@mv examples/*.cpp tmp/
 	@rm -f examples/*
 	@mv tmp/* examples/

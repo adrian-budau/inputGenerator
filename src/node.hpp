@@ -513,6 +513,13 @@ class NodeWrapper<NodeData, void> : public NodeWrapperBase<NodeData, void> {
     using NodeWrapperBase<NodeData, void>::internalNode;
 };
 
+#if defined(__clang__)
+
+template<class NodeData = void, class EdgeData = void>
+using Node = NodeWrapper<NodeData, EdgeData>;
+
+#elif defined(__GNUC__) && defined(__GNUC_MINOR__) && defined(__GNUC_PATCHLEVEL__)
+
 #define GCC_VERSION (__GNUC__ * 10000 + \
         __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__)
 
@@ -520,10 +527,12 @@ class NodeWrapper<NodeData, void> : public NodeWrapperBase<NodeData, void> {
 template<class NodeData = void, class EdgeData = void>
 using Node = NodeWrapper<NodeData, EdgeData>;
 #endif
+
 #undef GCC_VERSION
 
-template<class NodeData = void, class EdgeData = void>
-using Node = NodeWrapper<NodeData, EdgeData>;
+#endif
+
+
 }  // namespace inputGenerator
 
 #endif  // INPUT_GENERATOR_NODE_HPP_
