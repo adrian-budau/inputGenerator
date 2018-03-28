@@ -341,6 +341,9 @@ class NodeWrapperBase {
         std::vector<EdgeType> result;
         for (auto &edge : internalNode -> _neighbours)
             result.push_back(edge.second);
+        std::sort(result.begin(), result.end(), [&](const EdgeType& a, const EdgeType& b) {
+            return a.to().index() < b.to().index();
+        });
         return result;
     }
 

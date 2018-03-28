@@ -163,6 +163,12 @@ class Graph {
 
     void expandArc(const EdgeType&, Graph<NodeData, EdgeData>&, const Node&, const Node&);
 
+    void fuseGraph(Graph<NodeData, EdgeData>&, const std::vector< std::pair<Node, Node> >&, Boolean::Object simpleGraph = Boolean::False);
+
+    void fuseGraph(Graph<NodeData, EdgeData>&, std::initializer_list< std::pair<Node, Node> >, Boolean::Object simpleGraph = Boolean::False);
+
+    void fuseGraph(Graph<NodeData, EdgeData>&, int atLeast = 0, Boolean::Object simpleGraph = Boolean::False);
+
     bool hasNode(const Node&) const;
 
     int min() const {
@@ -221,6 +227,20 @@ Graph<NodeData, EdgeData> Graph<NodeData, EdgeData>::clone() const {
 
     return newGraph;
 }
+
+template<class NodeData>
+Graph<NodeData, void> cloneGraph(const Graph<NodeData, void>& graph) {
+    Graph<NodeData, void> newGraph(graph.size(), graph.min());
+    for (auto &arc : graph.arcs(true)) {
+        newGraph[arc.from().index()].addEdge(newGraph[arc.to().index()]);
+    }
+
+    for (auto &edge: graph.edges(true))
+        auto edge2 = addEdge(newGraph[edge.from().index()], newGraph[edge.to().index()]);
+
+    return newGraph;
+}
+
 
 template<class NodeData, class EdgeData>
 void Graph<NodeData, EdgeData>::clear() {
@@ -414,6 +434,76 @@ void Graph<NodeData, EdgeData>::expandEdge(const _Edge<NodeData, EdgeData>& edge
     addEdge(edge.from(), from);
     addEdge(to, edge.to());
     mergeGraph(graph);
+}
+
+template<class NodeData, class EdgeData>
+void Graph<NodeData, EdgeData>::fuseGraph(Graph<NodeData, EdgeData>& graph,
+                                          const std::vector< std::pair<Node, Node> > &mapping,
+                                          Boolean::Object simpleGraph) {
+#ifdef INPUT_GENERATOR_DEBUG
+    for (auto &p : mapping) {
+        if (!hasNode(p.first))
+            throw Exception("Left side of a mapping must contain only nodes from the original graph");
+        if (!graph.hasNode(p.second))
+            throw Exception("Right side of a mapping must contain only nodes from the given graph");
+    }
+    // FIXME: add checks for uniqueness
+#endif
+
+    graph.Index(0);
+    std::vector<bool> special(graph.size(), false);
+    std::vector<Node> whom(graph.size());
+
+    for (auto &p : mapping) {
+        special[p.second.index()] = true;
+        whom[p.second.index()] = p.first;
+    }
+
+    for (auto &p : mapping)
+        for (auto &e : p.second.edges()) {
+            if (!graph.hasNode(e.to()))
+                continue;
+
+            // special case, when we have to fuse the edge between two fused nodes
+            if (special[e.to().index()]) {
+                if (e.from().index() > e.to().index())
+                    continue;
+                using namespace help;
+                if (!simpleGraph || !p.first.hasEdge(whom[e.to().index()]))
+                    addEdge(p.first, whom[e.to().index()], e);
+                eraseEdge(e);
+                continue;
+            }
+
+            using namespace help;
+            addEdge(p.first, e.to(), e);
+            eraseEdge(e);
+        }
+    for (int i = 0; i < graph.size(); ++i)
+        if (!special[i])
+            addNodes({graph[i]});
+}
+
+template<class NodeData, class EdgeData>
+void Graph<NodeData, EdgeData>::fuseGraph(Graph<NodeData, EdgeData>& graph,
+                                          std::initializer_list< std::pair<Node, Node> > mapping,
+                                          Boolean::Object simpleGraph) {
+    return fuseGraph(graph, std::vector< std::pair<Node, Node> >(mapping.begin(), mapping.end()), simpleGraph);
+}
+
+template<class NodeData, class EdgeData>
+void Graph<NodeData, EdgeData>::fuseGraph(Graph<NodeData, EdgeData>& graph, int atLeast, Boolean::Object simpleGraph) {
+    int maximum = std::min(size(), graph.size());
+
+    int pick = randomInt(atLeast, maximum);
+    auto left = shuffle(randomSubsequence(*this), pick);
+    auto right = shuffle(randomSubsequence(graph), pick);
+
+    std::vector< std::pair<Node, Node> > mapping;
+    mapping.reserve(pick);
+    for (int i = 0; i < pick; ++i)
+        mapping.emplace_back(left[i], right[i]);
+    fuseGraph(graph, mapping, simpleGraph);
 }
 
 }  // namespace inputGenerator

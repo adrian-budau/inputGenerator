@@ -268,6 +268,9 @@ Container randomSubstring(const Container &data) {
 template<class IntType = int>
 std::vector<IntType> randomPartition(const IntType &number,
                                      const size_t &parts) {
+    if (number == 0 && parts == 0) {
+        return std::vector<IntType>();
+    }
 #ifdef INPUT_GENERATOR_DEBUG
     if (number < 1)
         throw Exception("randomPartition expects `number` to be strictly"
@@ -290,6 +293,33 @@ std::vector<IntType> randomPartition(const IntType &number,
 
     result.push_back(number - lastSplit + 1);
     return result;
+}
+
+template<class IntType = int>
+std::vector<IntType> randomPartition(const IntType &number,
+                                     const size_t &parts,
+                                     const IntType &minimum) {
+    if (number == 0 && parts == 0) {
+        return std::vector<IntType>();
+    }
+#ifdef INPUT_GENERATOR_DEBUG
+    if (number < 1)
+        throw Exception("randomPartition expects `number` to be strictly"
+                        " positive");
+
+    if (parts < 1 || IntType(parts) > number)
+        throw Exception("randomParition expects `parts` to be between 1 "
+                        "and `number`");
+
+    if (parts * minimum > number)
+        throw Exception("randomPartition expects `minium` * `parts` to be"
+                        "smaller than or equal to `number`");
+#endif
+    // by default the minimum is 1
+    auto partition = randomPartition(number - IntType(parts) * (minimum - 1), parts);
+    for (auto &x : partition)
+        x += minimum - 1;
+    return partition;
 }
 
 std::vector<int> randomPartition(const int &number) {
