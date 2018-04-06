@@ -8,22 +8,9 @@
 
 #include "../inputGenerator.hpp"
 
+#include "benchmark.hpp"
+
 using namespace std::chrono;
-
-template<class duration_type>
-double time_elapsed(const duration_type & d) {
-    return duration_cast<duration<double>>(d).count();
-}
-
-template<class function>
-double time_taken(function f) {
-    auto start = system_clock::now();
-
-    f();
-    auto end = system_clock::now();
-
-    return time_elapsed(end - start);
-}
 
 void testRandomInt() {
     std::cout << "Generating 100.000.000 numbers in range 0 MAX_INT: " << std::endl;
