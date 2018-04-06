@@ -20,10 +20,11 @@ static int random_int(int_t left, int_t right)
 }
 
 template<typename T>
-T random_choice(const std::vector<T>& v)
+typename std::vector<T>::const_iterator
+random_choice(const std::vector<T>& v)
 {
     assert (!v.empty());
-    return v[random_int(0, static_cast<int>(v.size() - 1))];
+    return v.begin() + random_int(0, static_cast<int>(v.size() - 1));
 }
 
 
@@ -52,19 +53,27 @@ struct AdvancedTreeGenerator {
 
     struct Tree {
         graph_t m_graph;
+        std::vector<node_t> m_leaves;
+
+        void init(graph_t graph)
+        {
+            m_graph = graph;
+            m_leaves = leaves(m_graph);
+        }
 
         // For two graphs of the same shape, this should return isomorphic nodes.
-        std::vector<node_t> nodes_of_inteanst() const
+        const std::vector<node_t>& nodes_of_interest() const
         {
-            return leaves(m_graph);
+            return m_leaves;
         }
 
-        node_t random_node_of_inteanst() const
+        typename std::vector<node_t>::const_iterator
+            random_node_of_interest() const
         {
-            return random_choice(nodes_of_inteanst());
+            return random_choice(nodes_of_interest());
         }
 
-        operator graph_t()
+        operator graph_t&()
         {
             return m_graph;
         }
@@ -79,9 +88,17 @@ struct AdvancedTreeGenerator {
             return &m_graph;
         }
 
-        Tree& combine(Tree v)
+        Tree& combine(Tree& v)
         {
-            m_graph.expandNode(random_node_of_inteanst(), graph_t(v), {v.random_node_of_inteanst()});
+            if (v->size() > m_graph.size()) {
+                return v.combine(*this);
+            }
+            auto it_exile = random_node_of_interest();
+            node_t exile = *it_exile;
+            m_leaves.erase(it_exile);
+            m_graph.expandNode(exile, graph_t(v), {*v.random_node_of_interest()});
+
+            m_leaves.insert(m_leaves.end(), v.m_leaves.begin(), v.m_leaves.end());
             return *this;
         }
     };
@@ -92,7 +109,7 @@ struct AdvancedTreeGenerator {
         static Chain make(int nnodes)
         {
             Chain c;
-            c.m_graph = chain<node_value_t>(nnodes, Boolean::False);
+            c.init(chain<node_value_t>(nnodes, Boolean::False));
             c.m_nnodes = nnodes;
             return c;
         }
@@ -119,7 +136,7 @@ struct AdvancedTreeGenerator {
                 lant.expandNode(lant[lchain - 1], add, {add[lright / 2]});
                 h.m_right = add;
             }
-            h.m_graph = lant;
+            h.init(lant);
 
             return h;
         }
@@ -178,7 +195,7 @@ struct AdvancedTreeGenerator {
         static RandomTree make(int nnodes)
         {
             RandomTree ret;
-            ret.m_graph = tree<node_value_t>(nnodes);
+            ret.init(tree<node_value_t>(nnodes));
             return ret;
         }
     };
@@ -187,7 +204,7 @@ struct AdvancedTreeGenerator {
         static WideRandomTree make(int nnodes, int mindiam)
         {
             WideRandomTree ret;
-            ret.m_graph = wideTree<node_value_t>(nnodes, mindiam);
+            ret.init(wideTree<node_value_t>(nnodes, mindiam));
             return ret;
         }
     };
@@ -205,7 +222,7 @@ struct AdvancedTreeGenerator {
 
             Star bc;
             bc.m_mid = 0;
-            bc.m_graph = g;
+            bc.init(g);
 
             return bc;
         }

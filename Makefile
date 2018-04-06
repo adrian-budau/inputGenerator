@@ -5,7 +5,7 @@ FOLDER=/usr/local/include/src
 SOURCES = $(wildcard examples/*.cpp)
 OBJECTS = $(SOURCES:.cpp=.o)
 
-CFLAGS  = -Wall -Wextra -O2 -std=c++11 -I$(CURDIR) -pedantic -Wcast-align -Wcast-qual -Wctor-dtor-privacy -Wformat=2 -Winit-self -Wmissing-include-dirs -Wold-style-cast -Woverloaded-virtual -Wredundant-decls -Wstrict-overflow=2 -Wswitch-default -Wundef -Werror -Iexamples/
+CFLAGS  = -Wall -Wextra -Og -g -std=c++11 -I$(CURDIR) -pedantic -Wcast-align -Wcast-qual -Wctor-dtor-privacy -Wformat=2 -Winit-self -Wmissing-include-dirs -Wold-style-cast -Woverloaded-virtual -Wredundant-decls -Wstrict-overflow=2 -Wswitch-default -Wundef -Werror -Iexamples/
 LDFLAGS = -lm
 
 install:
@@ -15,12 +15,8 @@ install:
 	@echo "Install OK"
 
 clean:
-	@mkdir tmp
 	@rm -rf examples/*.dSYM
-	@mv examples/*.cpp tmp/
-	@rm -f examples/*
-	@mv tmp/* examples/
-	@rm -rf tmp
+	@rm -f examples/*.o
 	@rm -f src/*.gch
 	@echo "Clean OK"
 

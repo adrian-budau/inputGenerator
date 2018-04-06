@@ -35,13 +35,6 @@ bool random_flip(double p)
 }
 
 
-template<typename T>
-vector<T> extend(vector<T> fst, const vector<T>& snd)
-{
-    fst.insert(fst.end(), snd.begin(), snd.end());
-    return fst;
-}
-
 
 string format(graph_t V)
 {
@@ -145,7 +138,7 @@ struct countfefete
             };
 
             // Randomly choose a transition and then continue.
-            random_choice(transitions)();
+            (*random_choice(transitions))();
         }
     }
 
