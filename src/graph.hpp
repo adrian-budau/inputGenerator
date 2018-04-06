@@ -148,7 +148,7 @@ class Graph {
     }
 
     int size() const {
-        return nodes.size();
+        return static_cast<int>(nodes.size());
     }
 
     std::vector<EdgeType> arcs(const bool &forceSearch = true) const;

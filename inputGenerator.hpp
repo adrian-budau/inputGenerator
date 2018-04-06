@@ -10,3 +10,4 @@
 #include "src/tree.hpp"
 #include "src/bipartite.hpp"
 #include "src/undirected_graph.hpp"
+#include "src/advanced_tree.hpp"
