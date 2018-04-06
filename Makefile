@@ -5,7 +5,7 @@ FOLDER=/usr/local/include/src
 SOURCES = $(wildcard examples/*.cpp)
 OBJECTS = $(SOURCES:.cpp=.o)
 
-CFLAGS  = -Wall -Wextra -O2 -std=c++11 -I$(CURDIR) -pedantic -Wcast-align -Wcast-qual -Wctor-dtor-privacy -Wformat=2 -Winit-self -Wmissing-include-dirs -Wold-style-cast -Woverloaded-virtual -Wredundant-decls -Wstrict-overflow=2 -Wswitch-default -Wundef -Werror
+CFLAGS  = -Wall -Wextra -O2 -std=c++11 -I$(CURDIR) -pedantic -Wcast-align -Wcast-qual -Wctor-dtor-privacy -Wformat=2 -Winit-self -Wmissing-include-dirs -Wold-style-cast -Woverloaded-virtual -Wredundant-decls -Wstrict-overflow=2 -Wswitch-default -Wundef -Werror -Iexamples/
 LDFLAGS = -lm
 
 install:
