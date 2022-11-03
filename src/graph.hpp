@@ -59,6 +59,11 @@ class Graph {
             return newIterator;
         }
 
+        Iterator& operator--() {
+            --alpha;
+            return *this;
+        }
+
         Iterator& operator+=(const size_t &difference) {
             alpha += difference;
             return *this;
